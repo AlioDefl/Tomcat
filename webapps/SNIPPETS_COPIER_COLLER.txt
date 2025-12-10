@@ -1,0 +1,364 @@
+═══════════════════════════════════════════════════════════════════════════
+  SNIPPETS À COPIER-COLLER - CONTRÔLE TP WEB BACKEND
+  Par Aliocha Deflou - BUT2 Info
+═══════════════════════════════════════════════════════════════════════════
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. DÉBUT HTML (copier au début de doGet/doPost)                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+res.setContentType("text/html;charset=UTF-8");
+PrintWriter out = res.getWriter();
+out.println("<!DOCTYPE html><html><head><meta charset='UTF-8'>");
+out.println("<title>Mon Titre</title><link rel='stylesheet' href='style-tp.css'>");
+out.println("</head><body><div class='container'><h1>Mon Titre</h1>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. FIN HTML (copier à la fin de doGet/doPost)                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("</div></body></html>");
+
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 3. SELECT SIMPLE (afficher un tableau)                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    String sql = "SELECT nom, prenom, age FROM client ORDER BY nom";
+    try (Statement stmt = cnx.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+        
+        out.println("<table><thead><tr><th>Nom</th><th>Prénom</th><th>Age</th></tr></thead><tbody>");
+        while (rs.next()) {
+            out.println("<tr><td>" + rs.getString("nom") + "</td>");
+            out.println("<td>" + rs.getString("prenom") + "</td>");
+            out.println("<td>" + rs.getInt("age") + "</td></tr>");
+        }
+        out.println("</tbody></table>");
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 4. SELECT AVEC PARAMÈTRE (PreparedStatement)                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String recherche = req.getParameter("nom");
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    String sql = "SELECT * FROM client WHERE nom = ?";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setString(1, recherche);
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                out.println("<p>Trouvé : " + rs.getString("nom") + "</p>");
+            } else {
+                out.println("<p>Aucun résultat</p>");
+            }
+        }
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 5. INSERT                                                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String nom = req.getParameter("nom");
+String prenom = req.getParameter("prenom");
+int age = Integer.parseInt(req.getParameter("age"));
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    String sql = "INSERT INTO client (nom, prenom, age) VALUES (?, ?, ?)";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setString(1, nom);
+        pstmt.setString(2, prenom);
+        pstmt.setInt(3, age);
+        int rows = pstmt.executeUpdate();
+        if (rows > 0) {
+            out.println("<div class='success'><p>Client ajouté !</p></div>");
+        }
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 6. UPDATE                                                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String nom = req.getParameter("nom");
+int nouvelAge = Integer.parseInt(req.getParameter("age"));
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    String sql = "UPDATE client SET age = ? WHERE nom = ?";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setInt(1, nouvelAge);
+        pstmt.setString(2, nom);
+        int rows = pstmt.executeUpdate();
+        out.println("<p>" + rows + " ligne(s) modifiée(s)</p>");
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 7. DELETE                                                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String nom = req.getParameter("nom");
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    String sql = "DELETE FROM client WHERE nom = ?";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setString(1, nom);
+        int rows = pstmt.executeUpdate();
+        if (rows > 0) {
+            out.println("<div class='success'><p>Supprimé !</p></div>");
+        }
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 8. FORMULAIRE                                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("<form method='POST' action='servlet-MaServlet'>");
+out.println("  <label for='nom'>Nom :</label>");
+out.println("  <input type='text' id='nom' name='nom' required>");
+out.println("  <label for='prenom'>Prénom :</label>");
+out.println("  <input type='text' id='prenom' name='prenom' required>");
+out.println("  <label for='age'>Age :</label>");
+out.println("  <input type='number' id='age' name='age' required>");
+out.println("  <input type='submit' value='Envoyer'>");
+out.println("</form>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 9. TABLEAU AVEC ACTIONS                                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("<table><thead><tr><th>Nom</th><th>Actions</th></tr></thead><tbody>");
+while (rs.next()) {
+    int id = rs.getInt("id");
+    String nom = rs.getString("nom");
+    out.println("<tr><td>" + nom + "</td><td>");
+    out.println("<a href='servlet-Voir?id=" + id + "'>Voir</a> | ");
+    out.println("<a href='servlet-Modifier?id=" + id + "'>Modifier</a>");
+    out.println("</td></tr>");
+}
+out.println("</tbody></table>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 10. BOUTON SUPPRIMER AVEC CONFIRMATION                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("<form method='POST' action='servlet-Supprimer' class='inline-form'>");
+out.println("  <input type='hidden' name='id' value='" + id + "'>");
+out.println("  <button type='submit' class='btn-supprimer' onclick='return confirm(\"Supprimer ?\")'>Supprimer</button>");
+out.println("</form>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 11. VÉRIFIER SESSION (début de doGet)                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+HttpSession session = req.getSession(false);
+if (session == null || session.getAttribute("userLogin") == null) {
+    res.sendRedirect("login.html");
+    return;
+}
+String login = (String) session.getAttribute("userLogin");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 12. LOGIN (authentification)                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String login = req.getParameter("login");
+String mdp = req.getParameter("mdp");
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    String sql = "SELECT role FROM personne WHERE login = ? AND mdp = MD5(?)";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setString(1, login);
+        pstmt.setString(2, mdp);
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                HttpSession session = req.getSession();
+                session.setAttribute("userLogin", login);
+                session.setAttribute("userRole", rs.getString("role"));
+                res.sendRedirect("servlet-Menu");
+            } else {
+                res.sendRedirect("login.html");
+            }
+        }
+    }
+} catch (SQLException e) {
+    res.sendRedirect("login.html");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 13. LOGOUT (déconnexion)                                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+HttpSession session = req.getSession(false);
+if (session != null) {
+    session.invalidate();
+}
+res.sendRedirect("login.html");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 14. RÉCUPÉRER PARAMÈTRES AVEC SÉCURITÉ                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+// String avec défaut
+String nom = req.getParameter("nom");
+if (nom == null || nom.isEmpty()) {
+    nom = "Défaut";
+}
+
+// Integer avec gestion d'erreur
+int age = 18; // défaut
+String ageParam = req.getParameter("age");
+if (ageParam != null && !ageParam.isEmpty()) {
+    try {
+        age = Integer.parseInt(ageParam);
+    } catch (NumberFormatException e) {
+        age = 18;
+    }
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 15. MESSAGES STYLÉS                                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+// Erreur (rouge)
+out.println("<div class='error'><p>Message d'erreur</p></div>");
+
+// Succès (vert)
+out.println("<div class='success'><p>Opération réussie !</p></div>");
+
+// Info (bleu)
+out.println("<div class='info'><p>Information</p></div>");
+
+// Warning (jaune)
+out.println("<div class='warning'><p>Attention !</p></div>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 16. MENU NAVIGATION                                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("<nav>");
+out.println("  <a href='servlet-Liste'>Liste</a>");
+out.println("  <a href='servlet-Ajouter'>Ajouter</a>");
+out.println("  <a href='servlet-Deconnexion'>Déconnexion</a>");
+out.println("</nav>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 17. COOKIES                                                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+// Créer
+Cookie c = new Cookie("nom", "valeur");
+c.setMaxAge(3600); // 1h
+res.addCookie(c);
+
+// Lire
+String val = null;
+Cookie[] cookies = req.getCookies();
+if (cookies != null) {
+    for (Cookie cookie : cookies) {
+        if ("nom".equals(cookie.getName())) {
+            val = cookie.getValue();
+        }
+    }
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 18. LISTE DÉROULANTE (SELECT) DEPUIS BDD                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String sql = "SELECT id, nom FROM equipe ORDER BY nom";
+try (Statement stmt = cnx.createStatement();
+     ResultSet rs = stmt.executeQuery(sql)) {
+    
+    out.println("<select name='equipe'>");
+    out.println("  <option value=''>-- Choisir --</option>");
+    while (rs.next()) {
+        out.println("  <option value='" + rs.getInt("id") + "'>" + rs.getString("nom") + "</option>");
+    }
+    out.println("</select>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 19. COMPTER (COUNT)                                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String sql = "SELECT COUNT(*) as total FROM client";
+try (Statement stmt = cnx.createStatement();
+     ResultSet rs = stmt.executeQuery(sql)) {
+    if (rs.next()) {
+        int total = rs.getInt("total");
+        out.println("<p>Total : " + total + " client(s)</p>");
+    }
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 20. TRANSACTION                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+Connection cnx = null;
+try {
+    cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass);
+    cnx.setAutoCommit(false);
+    
+    // Plusieurs requêtes
+    PreparedStatement pstmt1 = cnx.prepareStatement("INSERT INTO ...");
+    pstmt1.executeUpdate();
+    pstmt1.close();
+    
+    PreparedStatement pstmt2 = cnx.prepareStatement("UPDATE ...");
+    pstmt2.executeUpdate();
+    pstmt2.close();
+    
+    cnx.commit();
+    out.println("<p>Transaction OK</p>");
+} catch (SQLException e) {
+    if (cnx != null) cnx.rollback();
+    out.println("<p>Erreur : " + e.getMessage() + "</p>");
+} finally {
+    if (cnx != null) cnx.close();
+}
+
+
+═══════════════════════════════════════════════════════════════════════════
+💡 RAPPELS IMPORTANTS
+
+✓ Toujours : res.setContentType("text/html;charset=UTF-8");
+✓ Toujours : try-with-resources pour Connection/Statement/ResultSet
+✓ Toujours : PreparedStatement pour les paramètres (évite SQL injection)
+✓ CSS automatique avec : <link rel='stylesheet' href='style-tp.css'>
+
+Bon courage ! 💪
+═══════════════════════════════════════════════════════════════════════════

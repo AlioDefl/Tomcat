@@ -44,7 +44,8 @@ public class Authent extends HttpServlet {
         String role = null;
 
         try (Connection conn = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
-            String sql = "SELECT role FROM personne WHERE login = ? AND mdp = ?";
+            // Comparaison avec le hash MD5 du mot de passe fourni
+            String sql = "SELECT role FROM personne WHERE login = ? AND mdp = MD5(?)";
 
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, login);

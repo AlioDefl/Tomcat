@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inscription</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="mb-0">Créer un compte</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="servlet-Inscription">
+                            <h5 class="text-primary">Informations de connexion *</h5>
+
+                            <div class="mb-3">
+                                <label for="login" class="form-label">Login *</label>
+                                <input type="text" class="form-control" id="login" name="login" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mdp" class="form-label">Mot de passe *</label>
+                                <input type="password" class="form-control" id="mdp" name="mdp" required>
+                            </div>
+
+                            <hr>
+                            <h5 class="text-warning">Question secrète (récupération de mot de passe) *</h5>
+
+                            <div class="mb-3">
+                                <label for="question_secrete" class="form-label">Question secrète *</label>
+                                <input type="text" class="form-control" id="question_secrete" name="question_secrete"
+                                       placeholder="Ex: Quel est le nom de votre premier animal ?" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="reponse_secrete" class="form-label">Réponse *</label>
+                                <input type="text" class="form-control" id="reponse_secrete" name="reponse_secrete" required>
+                            </div>
+
+                            <hr>
+                            <h5 class="text-secondary">Informations personnelles</h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nom" class="form-label">Nom</label>
+                                    <input type="text" class="form-control" id="nom" name="nom">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="prenom" class="form-label">Prénom</label>
+                                    <input type="text" class="form-control" id="prenom" name="prenom">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="adresse" class="form-label">Adresse</label>
+                                <input type="text" class="form-control" id="adresse" name="adresse">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email">
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="tel" class="form-label">Téléphone</label>
+                                    <input type="tel" class="form-control" id="tel" name="tel">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="datenaiss" class="form-label">Date de naissance</label>
+                                <input type="date" class="form-control" id="datenaiss" name="datenaiss">
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">S'inscrire</button>
+                        </form>
+
+                        <hr>
+
+                        <div class="text-center">
+                            <a href="login.html" class="btn btn-link">Retour à la connexion</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

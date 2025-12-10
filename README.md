@@ -1,79 +1,177 @@
-## Welcome to Apache Tomcat!
+# Serveur Tomcat avec Application de Gestion des Utilisateurs
 
-### What Is It?
+Serveur Apache Tomcat 11 complet avec une application web Java de gestion des utilisateurs incluant un système de rôles (admin/util).
 
-The Apache Tomcat® software is an open source implementation of the Jakarta
-Servlet, Jakarta Pages, Jakarta Expression Language and Jakarta WebSocket
-technologies. The Jakarta Servlet, Jakarta Pages, Jakarta Expression Language and
-Jakarta WebSocket specifications are developed as part of the
-[Jakarta EE Platform](https://jakarta.ee/specifications/).
+## 🚀 Démarrage Rapide
 
-The Apache Tomcat software is developed in an open and participatory
-environment and released under the
-[Apache License version 2](https://www.apache.org/licenses/). The Apache Tomcat
-project is intended to be a collaboration of the best-of-breed developers from
-around the world. We invite you to participate in this open development
-project. To learn more about getting involved,
-[click here](https://tomcat.apache.org/getinvolved.html) or keep reading.
+```bash
+# 1. Cloner le dépôt
+git clone https://github.com/AlioDefl/Tomcat.git
+cd Tomcat
 
-Apache Tomcat software powers numerous large-scale, mission-critical web
-applications across a diverse range of industries and organizations. Some of
-these users and their stories are listed on the
-[PoweredBy wiki page](https://cwiki.apache.org/confluence/display/TOMCAT/PoweredBy).
+# 2. Configurer la base de données (voir section Configuration)
 
-Apache Tomcat, Tomcat, Apache, the Apache feather, and the Apache Tomcat
-project logo are trademarks of the Apache Software Foundation.
+# 3. Donner les permissions (Linux/Mac)
+chmod +x bin/*.sh
 
-### Get It
+# 4. Démarrer Tomcat
+./bin/startup.sh
 
-For every major Tomcat version there is one download page containing
-links to the latest binary and source code downloads, but also
-links for browsing the download directories and archives:
-- [Tomcat 11](https://tomcat.apache.org/download-11.cgi)
-- [Tomcat 10](https://tomcat.apache.org/download-10.cgi)
-- [Tomcat 9](https://tomcat.apache.org/download-90.cgi)
+# 5. Accéder à l'application
+# http://localhost:8080/vide/login.html
+```
 
-To facilitate choosing the right major Tomcat version one, we have provided a
-[version overview page](https://tomcat.apache.org/whichversion.html).
+## 📦 Contenu du Dépôt
 
-### Documentation
+- **bin/** - Scripts de démarrage/arrêt (startup.sh, shutdown.sh)
+- **lib/** - Bibliothèques JAR (servlet-api, postgresql, etc.)
+- **conf/** - Configuration Tomcat
+- **webapps/vide/** - Application de gestion des utilisateurs avec rôles
 
-The documentation available as of the date of this release is
-included in the docs webapp which ships with tomcat. You can access that webapp
-by starting tomcat and visiting <http://localhost:8080/docs/> in your browser.
-The most up-to-date documentation for each version can be found at:
-- [Tomcat 11](https://tomcat.apache.org/tomcat-11.0-doc/)
-- [Tomcat 10](https://tomcat.apache.org/tomcat-10.1-doc/)
-- [Tomcat 9](https://tomcat.apache.org/tomcat-9.0-doc/)
+## 🔐 Application "vide" - Gestion des Utilisateurs
 
-### Installation
+### Fonctionnalités
 
-Please see [RUNNING.txt](RUNNING.txt) for more info.
+**Rôle util (Utilisateur):**
+- ✅ Voir ses propres coordonnées
+- ✅ Modifier ses propres informations
+- ❌ Pas d'accès aux autres utilisateurs
 
-### Licensing
+**Rôle admin (Administrateur):**
+- ✅ Liste complète des utilisateurs
+- ✅ Voir/modifier n'importe quel utilisateur
+- ✅ Navigation facilitée
 
-Please see [LICENSE](LICENSE) for more info.
+### Comptes de Test
 
-### Support and Mailing List Information
+| Login | Mot de passe | Rôle |
+|-------|--------------|------|
+| aliocha | monmdp123 | admin |
+| enzo | Azert59 | admin |
+| testuser | password123 | util |
+| emille | Maquillage59 | util |
 
-* Free community support is available through the
-[tomcat-users](https://tomcat.apache.org/lists.html#tomcat-users) email list and
-a dedicated [IRC channel](https://tomcat.apache.org/irc.html) (#tomcat on
-Freenode).
+## ⚙️ Installation et Configuration
 
-* If you want freely available support for running Apache Tomcat, please see the
-resources page [here](https://tomcat.apache.org/findhelp.html).
+### Prérequis
+- Java 17+
+- PostgreSQL
+- Git
 
-* If you want to be informed about new code releases, bug fixes,
-security fixes, general news and information about Apache Tomcat, please
-subscribe to the
-[tomcat-announce](https://tomcat.apache.org/lists.html#tomcat-announce) email
-list.
+### Configuration Base de Données
 
-* If you have a concrete bug report for Apache Tomcat, please see the
-instructions for reporting a bug
-[here](https://tomcat.apache.org/bugreport.html).
+1. **Créer la base:**
+```sql
+CREATE DATABASE votre_base;
+```
 
-### Contributing
+2. **Créer la table:**
+```sql
+CREATE TABLE personne (
+    login VARCHAR(50) PRIMARY KEY,
+    mdp VARCHAR(255) NOT NULL,
+    nom VARCHAR(100),
+    prenom VARCHAR(100),
+    adresse VARCHAR(255),
+    email VARCHAR(100),
+    tel VARCHAR(20),
+    datenaiss DATE,
+    role VARCHAR(10) DEFAULT 'util'
+);
+```
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for more info.
+3. **Configurer la connexion:**
+
+Éditez `webapps/vide/WEB-INF/config.prop`:
+```properties
+driver=org.postgresql.Driver
+url=jdbc:postgresql://localhost:5432/votre_base
+login=votre_login
+password=votre_mot_de_passe
+```
+
+### Démarrer/Arrêter
+
+**Linux/Mac:**
+```bash
+./bin/startup.sh    # Démarrer
+./bin/shutdown.sh   # Arrêter
+```
+
+**Windows:**
+```bash
+bin\startup.bat     # Démarrer
+bin\shutdown.bat    # Arrêter
+```
+
+## 🔧 Gestion des Rôles
+
+Changer le rôle d'un utilisateur dans PostgreSQL:
+```sql
+-- Promouvoir en admin
+UPDATE personne SET role = 'admin' WHERE login = 'nom_utilisateur';
+
+-- Rétrograder en util
+UPDATE personne SET role = 'util' WHERE login = 'nom_utilisateur';
+```
+
+Le changement est effectif immédiatement après reconnexion.
+
+## 🛠️ Développement
+
+### Compiler les Servlets
+```bash
+cd webapps/vide/WEB-INF/src
+javac -cp "../../../../lib/servlet-api.jar:." *.java -d ../classes
+```
+
+### Consulter les Logs
+```bash
+tail -f logs/catalina.out
+```
+
+## 🏗️ Architecture
+
+**Technologies:**
+- Java 17 avec Jakarta Servlet API
+- PostgreSQL avec JDBC
+- Apache Tomcat 11.0.13
+- HTML5/CSS3
+
+**Servlets:**
+- `Authent.java` - Authentification
+- `ServletLecture.java` - Consultation avec gestion des rôles
+- `ServletModif.java` - Modification avec gestion des rôles
+- `ServletMenu.java` - Menu dynamique
+- `ServletDeconnecte.java` - Déconnexion
+
+**Sécurité:**
+- PreparedStatement (anti-injection SQL)
+- Vérification systématique des sessions
+- Contrôle d'accès basé sur les rôles
+
+## 🐛 Dépannage
+
+**Le serveur ne démarre pas:**
+- Vérifiez Java 17+ : `java -version`
+- Vérifiez que le port 8080 est libre
+- Consultez `logs/catalina.out`
+
+**Problème de connexion BDD:**
+- Vérifiez PostgreSQL démarré
+- Vérifiez `webapps/vide/WEB-INF/config.prop`
+- Vérifiez driver dans `lib/postgresql-*.jar`
+
+**Page 404:**
+- URL correcte : `http://localhost:8080/vide/login.html`
+- Vérifiez les logs de déploiement
+
+## 📝 Licence
+
+Projet académique - BUT Informatique
+
+## 👤 Auteur
+
+Aliocha Deflou
+
+**Repository:** https://github.com/AlioDefl/Tomcat.git

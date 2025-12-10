@@ -352,6 +352,136 @@ try {
 }
 
 
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 21. BATCH INSERT (insérer plusieurs lignes d'un coup)                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    String sql = "INSERT INTO client (nom, prenom, age) VALUES (?, ?, ?)";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        
+        // Ajouter plusieurs lignes au batch
+        pstmt.setString(1, "Dupont");
+        pstmt.setString(2, "Jean");
+        pstmt.setInt(3, 25);
+        pstmt.addBatch();
+        
+        pstmt.setString(1, "Martin");
+        pstmt.setString(2, "Marie");
+        pstmt.setInt(3, 30);
+        pstmt.addBatch();
+        
+        pstmt.setString(1, "Durand");
+        pstmt.setString(2, "Paul");
+        pstmt.setInt(3, 35);
+        pstmt.addBatch();
+        
+        // Exécuter tout d'un coup
+        int[] results = pstmt.executeBatch();
+        out.println("<p>" + results.length + " lignes insérées</p>");
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 22. FORMULAIRE DE MODIFICATION PRÉ-REMPLI                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+// D'abord récupérer les données existantes
+int id = Integer.parseInt(req.getParameter("id"));
+String nom = "", prenom = "";
+int age = 0;
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    String sql = "SELECT nom, prenom, age FROM client WHERE id = ?";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setInt(1, id);
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                nom = rs.getString("nom");
+                prenom = rs.getString("prenom");
+                age = rs.getInt("age");
+            }
+        }
+    }
+}
+
+// Afficher le formulaire pré-rempli
+out.println("<form method='POST' action='servlet-ModifierPost'>");
+out.println("  <input type='hidden' name='id' value='" + id + "'>");
+out.println("  <label>Nom :</label>");
+out.println("  <input type='text' name='nom' value='" + nom + "' required>");
+out.println("  <label>Prénom :</label>");
+out.println("  <input type='text' name='prenom' value='" + prenom + "' required>");
+out.println("  <label>Age :</label>");
+out.println("  <input type='number' name='age' value='" + age + "' required>");
+out.println("  <input type='submit' value='Modifier'>");
+out.println("</form>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 23. RADIO BUTTONS                                                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+// Afficher des radio buttons
+out.println("<label>Sexe :</label>");
+out.println("<input type='radio' id='homme' name='sexe' value='H' checked>");
+out.println("<label for='homme'>Homme</label>");
+out.println("<input type='radio' id='femme' name='sexe' value='F'>");
+out.println("<label for='femme'>Femme</label>");
+
+// Récupérer la valeur
+String sexe = req.getParameter("sexe"); // "H" ou "F"
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 24. CHECKBOXES                                                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+// Afficher des checkboxes
+out.println("<label>Langages :</label>");
+out.println("<input type='checkbox' id='java' name='langages' value='Java'>");
+out.println("<label for='java'>Java</label>");
+out.println("<input type='checkbox' id='python' name='langages' value='Python'>");
+out.println("<label for='python'>Python</label>");
+out.println("<input type='checkbox' id='js' name='langages' value='JavaScript'>");
+out.println("<label for='js'>JavaScript</label>");
+
+// Récupérer les valeurs cochées
+String[] langages = req.getParameterValues("langages");
+if (langages != null) {
+    for (String lang : langages) {
+        out.println("<p>Coché : " + lang + "</p>");
+    }
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 25. NIVEAU D'ISOLATION TRANSACTION                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    
+    // Définir le niveau d'isolation
+    cnx.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+    // Autres niveaux possibles :
+    // Connection.TRANSACTION_READ_UNCOMMITTED
+    // Connection.TRANSACTION_READ_COMMITTED
+    // Connection.TRANSACTION_REPEATABLE_READ
+    
+    cnx.setAutoCommit(false);
+    
+    // Tes requêtes ici...
+    
+    cnx.commit();
+} catch (SQLException e) {
+    cnx.rollback();
+}
+
+
 ═══════════════════════════════════════════════════════════════════════════
 💡 RAPPELS IMPORTANTS
 

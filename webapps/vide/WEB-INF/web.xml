@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+  <display-name>vide</display-name>
+
+  <servlet>
+    <servlet-name>Test</servlet-name>
+    <servlet-class>Test</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>Test</servlet-name>
+    <url-pattern>/servlet-Test</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Fibonacci</servlet-name>
+    <servlet-class>Fibonacci</servlet-class>
+    <load-on-startup>2</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>Fibonacci</servlet-name>
+    <url-pattern>/servlet-Fibonacci</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Palette</servlet-name>
+    <servlet-class>Palette</servlet-class>
+    <load-on-startup>3</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>Palette</servlet-name>
+    <url-pattern>/servlet-Palette</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Ascii</servlet-name>
+    <servlet-class>Ascii</servlet-class>
+    <load-on-startup>4</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>Ascii</servlet-name>
+    <url-pattern>/servlet-Ascii</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>NouvelAn</servlet-name>
+    <servlet-class>NouvelAn</servlet-class>
+    <load-on-startup>5</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>NouvelAn</servlet-name>
+    <url-pattern>/servlet-NouvelAn</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ListeJoueurs</servlet-name>
+    <servlet-class>ListeJoueurs</servlet-class>
+    <load-on-startup>6</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ListeJoueurs</servlet-name>
+    <url-pattern>/servlet-ListeJoueurs</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ListeRencontresEvol</servlet-name>
+    <servlet-class>ListeRencontresEvol</servlet-class>
+    <load-on-startup>7</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ListeRencontresEvol</servlet-name>
+    <url-pattern>/servlet-ListeRencontresEvol</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>MonEquipe</servlet-name>
+    <servlet-class>MonEquipe</servlet-class>
+    <load-on-startup>8</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>MonEquipe</servlet-name>
+    <url-pattern>/servlet-MonEquipe</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Compteur</servlet-name>
+    <servlet-class>Compteur</servlet-class>
+    <load-on-startup>9</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>Compteur</servlet-name>
+    <url-pattern>/servlet-Compteur</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>JoueursDisponibles</servlet-name>
+    <servlet-class>JoueursDisponibles</servlet-class>
+    <load-on-startup>10</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>JoueursDisponibles</servlet-name>
+    <url-pattern>/servlet-JoueursDisponibles</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>JoueursChoisis</servlet-name>
+    <servlet-class>JoueursChoisis</servlet-class>
+    <load-on-startup>11</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>JoueursChoisis</servlet-name>
+    <url-pattern>/servlet-JoueursChoisis</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ChoisirEquipe</servlet-name>
+    <servlet-class>ChoisirEquipe</servlet-class>
+    <load-on-startup>12</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ChoisirEquipe</servlet-name>
+    <url-pattern>/servlet-ChoisirEquipe</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Authent</servlet-name>
+    <servlet-class>Authent</servlet-class>
+    <load-on-startup>13</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>Authent</servlet-name>
+    <url-pattern>/servlet-Authent</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ServletStatut</servlet-name>
+    <servlet-class>ServletStatut</servlet-class>
+    <load-on-startup>14</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ServletStatut</servlet-name>
+    <url-pattern>/servlet-Statut</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ServletLecture</servlet-name>
+    <servlet-class>ServletLecture</servlet-class>
+    <load-on-startup>15</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ServletLecture</servlet-name>
+    <url-pattern>/servlet-Lecture</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ServletModif</servlet-name>
+    <servlet-class>ServletModif</servlet-class>
+    <load-on-startup>16</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ServletModif</servlet-name>
+    <url-pattern>/servlet-Modif</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ServletDeconnecte</servlet-name>
+    <servlet-class>ServletDeconnecte</servlet-class>
+    <load-on-startup>17</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ServletDeconnecte</servlet-name>
+    <url-pattern>/servlet-Deconnecte</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ServletMenu</servlet-name>
+    <servlet-class>ServletMenu</servlet-class>
+    <load-on-startup>18</load-on-startup>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ServletMenu</servlet-name>
+    <url-pattern>/servlet-Menu</url-pattern>
+  </servlet-mapping>
+
+</web-app>
+
+

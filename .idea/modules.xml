@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/webapps/docs/docs.iml" filepath="$PROJECT_DIR$/webapps/docs/docs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/webapps/examples/examples.iml" filepath="$PROJECT_DIR$/webapps/examples/examples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/tomcat.iml" filepath="$PROJECT_DIR$/.idea/tomcat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/webapps/vide/vide.iml" filepath="$PROJECT_DIR$/webapps/vide/vide.iml" />
+      <module fileurl="file://$PROJECT_DIR$/work/work.iml" filepath="$PROJECT_DIR$/work/work.iml" />
+    </modules>
+  </component>
+</project>

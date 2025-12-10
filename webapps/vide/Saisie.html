@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Créer une rencontre</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        form { 
+            max-width: 600px; 
+            margin: 20px auto; 
+            padding: 20px; 
+            background-color: white;
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        label { 
+            display: block; 
+            margin-top: 15px; 
+            font-weight: bold; 
+            color: #333;
+        }
+        input[type=text], 
+        input[type=number], 
+        input[type=date] { 
+            width: 100%; 
+            padding: 8px; 
+            margin-top: 5px; 
+            border: 1px solid #ddd; 
+            border-radius: 3px; 
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        input[type=submit] { 
+            margin-top: 20px; 
+            padding: 10px 20px; 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 3px; 
+            cursor: pointer; 
+            font-size: 16px;
+            width: 100%;
+        }
+        input[type=submit]:hover { 
+            background-color: #45a049; 
+        }
+        h1 { 
+            text-align: center; 
+            color: #333; 
+        }
+        .info { 
+            background-color: #e7f3fe; 
+            border-left: 4px solid #2196F3; 
+            padding: 10px; 
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Créer une nouvelle rencontre</h1>
+    
+    <form method="POST" action="servlet-CreerRencontre">
+        <label for="num_match">Numéro du match :</label>
+        <input type="number" id="num_match" name="num_match" required>
+        
+        <label for="eq1">Équipe 1:</label>
+        <input type="number" id="eq1" name="eq1" required>
+        
+        <label for="eq2">Équipe 2:</label>
+        <input type="number" id="eq2" name="eq2" required>
+        
+        <label for="jour">Date du match :</label>
+        <input type="date" id="jour" name="jour" required>
+        
+        <label for="sc1">Score Équipe 1 :</label>
+        <input type="number" id="sc1" name="sc1" min="0" required>
+        
+        <label for="sc2">Score Équipe 2 :</label>
+        <input type="number" id="sc2" name="sc2" min="0" required>
+        
+        <input type="submit" value="Créer la rencontre">
+    </form>
+    
+   
+    
+    <p class="back-link"><a href="servlet-ListeRencontres">Retour à la liste des rencontres</a></p>
+</body>
+</html>
+

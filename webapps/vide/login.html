@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        label { display: block; margin-top: 10px; }
+        input { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Authentification</h1>
+    <form action="servlet-Authent" method="POST">
+        <label for="login">Login :</label>
+        <input type="text" id="login" name="login" required><br>
+
+        <label for="mdp">Mot de passe :</label>
+        <input type="password" id="mdp" name="mdp" required><br>
+
+        <input type="submit" value="Se connecter">
+    </form>
+</body>
+</html>

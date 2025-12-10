@@ -1,0 +1,80 @@
+body {
+  background-color: lavender;
+}
+
+h1 {
+  font-size: 2em;
+  color: white;
+  background-color: black;
+  text-align: center;
+}
+
+section > header h2 {
+  font-size: 2em;
+  margin: 0;
+  padding: 0;
+}
+
+article h3 {
+  font-size: 1.5em;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+}
+
+h4 {
+  display: none;
+}
+
+body > header, body > footer {
+  font-size: 3em;
+  letter-spacing: 1em;
+  text-align: center;
+  border: 5px groove black;
+}
+
+article div {
+  background-color: gray;
+  width: 46%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+article, article div {
+  margin: 1em;
+  padding: 1em;
+}
+
+nav {
+  float: left;
+  width: 150px;
+  background-color: gray;
+  padding: 4px;
+  margin-right: 20px;
+}
+
+nav ol {
+  list-style-type: none;
+  padding: 0;
+}
+
+nav li {
+  display: block;
+  margin: 5px 0;
+}
+
+nav a {
+  display: block;
+  color: white;
+  background-color: gray;
+  font-size: 1.5em;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  text-decoration: none;
+  padding: 8px;
+}
+
+nav a:hover {
+  background-color: black;
+}
+
+body > h1, section, footer {
+  margin-left: 190px;
+}

@@ -1,0 +1,366 @@
+/* =====================================================
+   FICHIER CSS RÉUTILISABLE POUR LES TPs WEB BACKEND
+   À placer dans webapps/vide/
+   ===================================================== */
+
+/* === RESET ET BASE === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f5f5f5;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 5px;
+}
+
+/* === TITRES === */
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4CAF50;
+}
+
+h2 {
+    color: #333;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+h3 {
+    color: #555;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+/* === TABLEAUX === */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+    background-color: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #ddd;
+}
+
+tr.red {
+    color: red;
+    font-weight: bold;
+}
+
+/* === FORMULAIRES === */
+form {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #333;
+}
+
+input[type=text],
+input[type=email],
+input[type=password],
+input[type=number],
+input[type=date],
+input[type=tel],
+select,
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+input[type=submit],
+button[type=submit] {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+}
+
+input[type=submit]:hover,
+button[type=submit]:hover {
+    background-color: #45a049;
+}
+
+/* === BOUTONS === */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn:hover {
+    background-color: #45a049;
+}
+
+.btn-supprimer {
+    padding: 6px 12px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-supprimer:hover {
+    background-color: #da190b;
+}
+
+.btn-modifier {
+    padding: 6px 12px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-modifier:hover {
+    background-color: #0b7dda;
+}
+
+.btn-changer {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.btn-changer:hover {
+    background-color: #45a049;
+}
+
+/* === LIENS === */
+a {
+    color: #2196F3;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.back-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* === MESSAGES ET ALERTES === */
+.info {
+    background-color: #e7f3fe;
+    border-left: 6px solid #2196F3;
+    padding: 10px;
+    margin: 20px 0;
+}
+
+.success {
+    background-color: #d4edda;
+    border-left: 6px solid #4CAF50;
+    padding: 10px;
+    margin: 20px 0;
+    color: #155724;
+}
+
+.error {
+    color: red;
+    border: 2px solid red;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+    background-color: #ffebee;
+}
+
+.warning {
+    background-color: #fff3cd;
+    border-left: 6px solid #ffc107;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.equipe-info {
+    background-color: #fff3cd;
+    border-left: 6px solid #ffc107;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+/* === NAVIGATION === */
+nav {
+    background-color: #333;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+nav a {
+    color: white;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+nav a:hover {
+    background-color: #555;
+    text-decoration: none;
+}
+
+/* === LISTES === */
+ul {
+    list-style-type: disc;
+    margin-left: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+li {
+    margin: 5px 0;
+}
+
+/* === UTILITAIRES === */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.inline-form {
+    margin: 0;
+    display: inline;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    body {
+        margin: 10px;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+    
+    table {
+        font-size: 12px;
+    }
+    
+    th, td {
+        padding: 5px;
+    }
+    
+    form {
+        padding: 15px;
+    }
+}
+
+/* === POUR LES EXERCICES SPÉCIFIQUES === */
+
+/* Palette de couleurs */
+.palette-container {
+    text-align: center;
+}
+
+.palette-links a {
+    margin: 5px;
+    padding: 5px 10px;
+    text-decoration: none;
+    border: 1px solid #ccc;
+    display: inline-block;
+    background: #f0f0f0;
+}
+
+.palette-links a:hover {
+    background: #e0e0e0;
+}
+
+/* Compteur */
+.compteur-info {
+    font-size: 18px;
+    text-align: center;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    margin: 20px 0;
+}

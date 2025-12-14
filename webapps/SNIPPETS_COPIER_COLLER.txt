@@ -482,6 +482,223 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
 }
 
 
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 26. CRÉER NOUVEL UTILISATEUR (avec MD5)                                 │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String login = req.getParameter("login");
+String mdp = req.getParameter("mdp");
+String question = req.getParameter("question");
+String reponse = req.getParameter("reponse");
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    
+    // Vérifier si le login existe déjà
+    String checkSql = "SELECT login FROM personne WHERE login = ?";
+    try (PreparedStatement checkStmt = cnx.prepareStatement(checkSql)) {
+        checkStmt.setString(1, login);
+        try (ResultSet rs = checkStmt.executeQuery()) {
+            if (rs.next()) {
+                out.println("<div class='error'><p>Ce login existe déjà !</p></div>");
+                return;
+            }
+        }
+    }
+    
+    // Insérer le nouvel utilisateur avec mot de passe haché
+    String sql = "INSERT INTO personne (login, mdp, role, question, reponse) VALUES (?, MD5(?), 'util', ?, ?)";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setString(1, login);
+        pstmt.setString(2, mdp);
+        pstmt.setString(3, question);
+        pstmt.setString(4, reponse);
+        
+        int rows = pstmt.executeUpdate();
+        if (rows > 0) {
+            out.println("<div class='success'><p>Compte créé avec succès !</p></div>");
+        }
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 27. RÉCUPÉRATION MOT DE PASSE (question magique)                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String login = req.getParameter("login");
+String reponse = req.getParameter("reponse");
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    
+    String sql = "SELECT mdp FROM personne WHERE login = ? AND reponse = ?";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setString(1, login);
+        pstmt.setString(2, reponse);
+        
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                String mdpHache = rs.getString("mdp");
+                out.println("<div class='info'><p>Votre mot de passe haché : " + mdpHache + "</p>");
+                out.println("<p><em>(Note: le mot de passe est haché, il n'est plus utilisable)</em></p></div>");
+            } else {
+                out.println("<div class='error'><p>Login ou réponse incorrecte !</p></div>");
+            }
+        }
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 28. AFFICHER LA QUESTION MAGIQUE                                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+String login = req.getParameter("login");
+
+try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
+    
+    String sql = "SELECT question FROM personne WHERE login = ?";
+    try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
+        pstmt.setString(1, login);
+        
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                String question = rs.getString("question");
+                
+                out.println("<form method='POST' action='servlet-RecupererMdp'>");
+                out.println("  <input type='hidden' name='login' value='" + login + "'>");
+                out.println("  <p><strong>Question :</strong> " + question + "</p>");
+                out.println("  <label>Réponse :</label>");
+                out.println("  <input type='text' name='reponse' required>");
+                out.println("  <input type='submit' value='Récupérer'>");
+                out.println("</form>");
+            } else {
+                out.println("<div class='error'><p>Login inconnu !</p></div>");
+            }
+        }
+    }
+} catch (SQLException e) {
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+}
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 29. BOOTSTRAP - EN-TÊTE HTML                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("<!DOCTYPE html>");
+out.println("<html lang='fr'>");
+out.println("<head>");
+out.println("  <meta charset='UTF-8'>");
+out.println("  <meta name='viewport' content='width=device-width, initial-scale=1'>");
+out.println("  <title>Mon Titre</title>");
+out.println("  <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css' rel='stylesheet'>");
+out.println("</head>");
+out.println("<body>");
+out.println("<div class='container'>");
+out.println("  <h1 class='mt-4'>Mon Titre</h1>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 30. BOOTSTRAP - MESSAGES D'ALERTE                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+// Alerte primaire (bleu)
+out.println("<div class='alert alert-primary' role='alert'>Message d'information</div>");
+
+// Alerte succès (vert)
+out.println("<div class='alert alert-success' role='alert'>Opération réussie !</div>");
+
+// Alerte danger (rouge)
+out.println("<div class='alert alert-danger' role='alert'>Erreur !</div>");
+
+// Alerte warning (jaune)
+out.println("<div class='alert alert-warning' role='alert'>Attention !</div>");
+
+// Alerte info (bleu clair)
+out.println("<div class='alert alert-info' role='alert'>Information</div>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 31. BOOTSTRAP - TABLEAU                                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("<table class='table table-striped table-hover'>");
+out.println("  <thead class='table-dark'>");
+out.println("    <tr><th>Nom</th><th>Prénom</th><th>Age</th></tr>");
+out.println("  </thead>");
+out.println("  <tbody>");
+while (rs.next()) {
+    out.println("<tr>");
+    out.println("  <td>" + rs.getString("nom") + "</td>");
+    out.println("  <td>" + rs.getString("prenom") + "</td>");
+    out.println("  <td>" + rs.getInt("age") + "</td>");
+    out.println("</tr>");
+}
+out.println("  </tbody>");
+out.println("</table>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 32. BOOTSTRAP - FORMULAIRE                                               │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("<form method='POST' action='servlet-Ajouter'>");
+
+out.println("  <div class='mb-3'>");
+out.println("    <label for='nom' class='form-label'>Nom</label>");
+out.println("    <input type='text' class='form-control' id='nom' name='nom' required>");
+out.println("  </div>");
+
+out.println("  <div class='mb-3'>");
+out.println("    <label for='prenom' class='form-label'>Prénom</label>");
+out.println("    <input type='text' class='form-control' id='prenom' name='prenom' required>");
+out.println("  </div>");
+
+out.println("  <div class='mb-3'>");
+out.println("    <label for='age' class='form-label'>Age</label>");
+out.println("    <input type='number' class='form-control' id='age' name='age' required>");
+out.println("  </div>");
+
+out.println("  <button type='submit' class='btn btn-primary'>Envoyer</button>");
+out.println("</form>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 33. BOOTSTRAP - BOUTONS                                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+// Boutons colorés
+out.println("<button class='btn btn-primary'>Primaire</button>");
+out.println("<button class='btn btn-success'>Succès</button>");
+out.println("<button class='btn btn-danger'>Danger</button>");
+out.println("<button class='btn btn-warning'>Warning</button>");
+out.println("<button class='btn btn-info'>Info</button>");
+
+// Boutons avec liens
+out.println("<a href='servlet-Liste' class='btn btn-primary'>Voir la liste</a>");
+out.println("<a href='servlet-Ajouter' class='btn btn-success'>Ajouter</a>");
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 34. BOOTSTRAP - BARRE DE NAVIGATION                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+out.println("<nav class='navbar navbar-expand-lg navbar-dark bg-dark'>");
+out.println("  <div class='container-fluid'>");
+out.println("    <a class='navbar-brand' href='#'>Mon Site</a>");
+out.println("    <div class='navbar-nav'>");
+out.println("      <a class='nav-link' href='servlet-Liste'>Liste</a>");
+out.println("      <a class='nav-link' href='servlet-Ajouter'>Ajouter</a>");
+out.println("      <a class='nav-link' href='servlet-Deconnexion'>Déconnexion</a>");
+out.println("    </div>");
+out.println("  </div>");
+out.println("</nav>");
+
+
 ═══════════════════════════════════════════════════════════════════════════
 💡 RAPPELS IMPORTANTS
 

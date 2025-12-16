@@ -3,6 +3,91 @@
 
 ---
 
+## ⚠️ INFOS IMPORTANTES DU PROF
+
+### 🎯 Notation (TRÈS ENCOURAGEANTE !)
+- ✅ **Ne fais pas la dernière question** → 18/20 (excellent !)
+- ✅ **Ne fais pas les 2 dernières** → 15/20 (très bien !)
+- 🎯 **Stratégie :** Vise la solidité plutôt que la vitesse !
+
+### 📚 Pendant le contrôle
+- ✅ **Tous documents autorisés** (cours, TP, tes fichiers)
+- ✅ **Accès Moodle complet**
+- ✅ **Nouveau contexte fourni** (ils te donnent un sujet/thème)
+- ❌ **Pas de machine perso** (ordinateurs de l'IUT)
+- 📖 **Cours concernés :** transp312 à transp316 (5 cours)
+
+### 🔧 Points CRITIQUES à ne pas oublier
+
+#### 1. CLASSPATH (IMPORTANT !)
+Tu dois savoir compiler à la main. La commande complète :
+```bash
+javac -cp /chemin/vers/tomcat/lib/servlet-api.jar:. MaServlet.java
+```
+
+**OU plus simple si t'es dans le bon dossier :**
+```bash
+cd ~/tomcat/webapps/vide/WEB-INF/src/
+javac MaServlet.java
+# Ça marche si le CLASSPATH est déjà configuré
+```
+
+**Si erreur "package jakarta.servlet does not exist" :**
+```bash
+# Trouver où est servlet-api.jar
+find ~/tomcat -name "servlet-api.jar"
+# Puis compiler avec -cp
+javac -cp /chemin/trouvé/servlet-api.jar:. MaServlet.java
+```
+
+#### 2. FERMER LES CONNEXIONS BDD (CRITIQUE !)
+**❌ MAUVAIS (va te coûter des points) :**
+```java
+Connection cnx = DriverManager.getConnection(...);
+Statement stmt = cnx.createStatement();
+// Tu ne fermes rien !
+```
+
+**✅ BON (utilise TOUJOURS try-with-resources) :**
+```java
+try (Connection cnx = DriverManager.getConnection(...);
+     PreparedStatement pstmt = cnx.prepareStatement(sql);
+     ResultSet rs = pstmt.executeQuery()) {
+    
+    // Ton code ici
+    
+} // Tout se ferme automatiquement !
+```
+
+#### 3. DÉBUGGAGE (DEMANDÉ PAR LE PROF !)
+
+**❌ JAMAIS faire ça :**
+```java
+try {
+    // code
+} catch (SQLException e) {
+    // VIDE = TU PERDS DES POINTS !
+}
+```
+
+**✅ TOUJOURS faire ça :**
+```java
+try {
+    // Afficher le PreparedStatement AVANT de l'exécuter
+    System.out.println("=== SQL: " + sql);
+    System.out.println("=== Param1: " + param1);
+    
+    pstmt.executeUpdate();
+    
+} catch (SQLException e) {
+    // OBLIGATOIRE : afficher l'erreur
+    out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+    e.printStackTrace(); // Aussi dans les logs
+}
+```
+
+---
+
 ## 📋 AVANT LE CONTRÔLE (PRÉPARATION)
 
 ### 1. Vérifier que Tomcat fonctionne
@@ -213,6 +298,24 @@ http://localhost:8080/vide/servlet-Login
 ---
 
 ## 🔧 COMPILATION ET DÉPLOIEMENT
+
+### ⚠️ CLASSPATH - À VÉRIFIER EN PREMIER !
+
+**Si tu as une erreur "package jakarta.servlet does not exist" :**
+
+```bash
+# Option 1 : Vérifier ton CLASSPATH
+echo $CLASSPATH
+# Doit contenir le chemin vers servlet-api.jar
+
+# Option 2 : Compiler avec -cp explicite
+javac -cp ~/tomcat/lib/servlet-api.jar:. MaServlet.java
+
+# Option 3 : Configurer CLASSPATH une fois pour toutes
+export CLASSPATH=~/tomcat/lib/servlet-api.jar:.
+# Puis compile normalement
+javac MaServlet.java
+```
 
 ### Commandes essentielles
 ```bash

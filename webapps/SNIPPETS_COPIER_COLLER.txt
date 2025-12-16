@@ -29,6 +29,8 @@ out.println("</div></body></html>");
 
 try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) {
     String sql = "SELECT nom, prenom, age FROM client ORDER BY nom";
+    System.out.println("=== SQL: " + sql); // DEBUG (demandé par le prof !)
+    
     try (Statement stmt = cnx.createStatement();
          ResultSet rs = stmt.executeQuery(sql)) {
         
@@ -42,6 +44,7 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
     }
 } catch (SQLException e) {
     out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+    e.printStackTrace(); // Pour les logs
 }
 
 
@@ -54,6 +57,11 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
     String sql = "SELECT * FROM client WHERE nom = ?";
     try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
         pstmt.setString(1, recherche);
+        
+        // DEBUG : Afficher la requête (demandé par le prof !)
+        System.out.println("=== SQL: " + sql);
+        System.out.println("=== Param 1: " + recherche);
+        
         try (ResultSet rs = pstmt.executeQuery()) {
             if (rs.next()) {
                 out.println("<p>Trouvé : " + rs.getString("nom") + "</p>");
@@ -64,6 +72,7 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
     }
 } catch (SQLException e) {
     out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+    e.printStackTrace();
 }
 
 
@@ -81,6 +90,11 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
         pstmt.setString(1, nom);
         pstmt.setString(2, prenom);
         pstmt.setInt(3, age);
+        
+        // DEBUG (demandé par le prof !)
+        System.out.println("=== SQL: " + sql);
+        System.out.println("=== Params: " + nom + ", " + prenom + ", " + age);
+        
         int rows = pstmt.executeUpdate();
         if (rows > 0) {
             out.println("<div class='success'><p>Client ajouté !</p></div>");
@@ -88,6 +102,7 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
     }
 } catch (SQLException e) {
     out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+    e.printStackTrace();
 }
 
 
@@ -103,11 +118,16 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
     try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
         pstmt.setInt(1, nouvelAge);
         pstmt.setString(2, nom);
+        
+        System.out.println("=== SQL: " + sql); // DEBUG
+        System.out.println("=== Params: " + nouvelAge + ", " + nom);
+        
         int rows = pstmt.executeUpdate();
         out.println("<p>" + rows + " ligne(s) modifiée(s)</p>");
     }
 } catch (SQLException e) {
     out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+    e.printStackTrace();
 }
 
 
@@ -120,6 +140,10 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
     String sql = "DELETE FROM client WHERE nom = ?";
     try (PreparedStatement pstmt = cnx.prepareStatement(sql)) {
         pstmt.setString(1, nom);
+        
+        System.out.println("=== SQL: " + sql); // DEBUG
+        System.out.println("=== Param: " + nom);
+        
         int rows = pstmt.executeUpdate();
         if (rows > 0) {
             out.println("<div class='success'><p>Supprimé !</p></div>");
@@ -127,6 +151,7 @@ try (Connection cnx = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPass)) 
     }
 } catch (SQLException e) {
     out.println("<div class='error'><p>" + e.getMessage() + "</p></div>");
+    e.printStackTrace();
 }
 
 
@@ -700,12 +725,19 @@ out.println("</nav>");
 
 
 ═══════════════════════════════════════════════════════════════════════════
-💡 RAPPELS IMPORTANTS
+💡 RAPPELS IMPORTANTS (DEMANDÉS PAR LE PROF !)
 
-✓ Toujours : res.setContentType("text/html;charset=UTF-8");
-✓ Toujours : try-with-resources pour Connection/Statement/ResultSet
-✓ Toujours : PreparedStatement pour les paramètres (évite SQL injection)
+✓ TOUJOURS : res.setContentType("text/html;charset=UTF-8");
+✓ TOUJOURS : try-with-resources pour Connection/Statement/ResultSet (fermeture auto)
+✓ TOUJOURS : PreparedStatement pour les paramètres (évite SQL injection)
+✓ TOUJOURS : Afficher e.getMessage() dans les catch (JAMAIS de catch vide !)
+✓ TOUJOURS : System.out.println() pour debug SQL avant exécution
 ✓ CSS automatique avec : <link rel='stylesheet' href='style-tp.css'>
+
+📊 STRATÉGIE NOTATION :
+- Ne fais pas la dernière question → 18/20 ✅
+- Ne fais pas les 2 dernières → 15/20 ✅
+→ Privilégie la QUALITÉ sur la vitesse !
 
 Bon courage ! 💪
 ═══════════════════════════════════════════════════════════════════════════

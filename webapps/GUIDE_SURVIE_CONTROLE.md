@@ -22,7 +22,7 @@
 #### 1. CLASSPATH (IMPORTANT !)
 Tu dois savoir compiler à la main. La commande complète :
 ```bash
-javac -cp /chemin/vers/tomcat/lib/servlet-api.jar:. MaServlet.java
+javac -cp lib/servlet-api.jar -d webapps/vide/WEB-INF/classes webapps/vide/WEB-INF/src/Authent.java
 ```
 
 **OU plus simple si t'es dans le bon dossier :**
@@ -111,7 +111,7 @@ cp style-tp.css ~/tomcat/webapps/vide/
 
 ### 4. Vérifier PostgreSQL
 ```bash
-psql -U postgres -d ta_base
+psql -h psqlserv -U aliochadeflouetu  but2
 # Si ça marche, c'est bon ✅
 ```
 
@@ -148,7 +148,7 @@ Pages HTML :
 #### A. Vérifier/créer les tables
 ```sql
 -- Se connecter
-psql -U postgres -d ta_base
+psql -h psqlserv -U aliochadeflouetu  but2
 
 -- Créer la table (exemple)
 CREATE TABLE client (

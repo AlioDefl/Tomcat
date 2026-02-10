@@ -1,0 +1,858 @@
+═══════════════════════════════════════════════════════════════════════════
+  SNIPPETS PARTIE 2 - TP 3.18 à 3.21
+  Sécurité, JSP, DAO, MVC
+  Par Aliocha Deflou - BUT2 Info
+═══════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     TP 3.18 - SÉCURITÉ WEB                              │
+└─────────────────────────────────────────────────────────────────────────┘
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 26. COMMANDES UNIX POUR DÉPLOIEMENT (sans éditeur !)                    ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+# Trouver dans quels fichiers sont faites les connexions BDD
+grep -r "getConnection" *.java
+grep -r "DriverManager" WEB-INF/src/
+
+# Remplacer un nom d'utilisateur dans TOUS les fichiers
+sed -i 's/ancien_user/nouveau_user/g' WEB-INF/src/*.java
+
+# Remplacer URL/login/password de la BDD dans tous les fichiers
+sed -i 's/jdbc:postgresql:\/\/localhost:5432\/ancienne_base/jdbc:postgresql:\/\/localhost:5432\/nouvelle_base/g' *.java
+sed -i 's/password_ancien/password_nouveau/g' *.java
+
+# Voir le contenu d'un fichier (sans éditeur)
+head -50 WEB-INF/src/MaServlet.java    # premiers 50 lignes
+tail -50 WEB-INF/src/MaServlet.java    # derniers 50 lignes
+grep -n "mot" fichier.java              # chercher avec numéro de ligne
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 27. PROTECTION CONTRE XSS - StringEscapeUtils                           ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+// IMPORT nécessaire (ajouter commons-text.jar et commons-lang3.jar)
+import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.text.translate.CharSequenceTranslator;
+
+// UTILISATION - Échapper les caractères HTML dangereux
+String inputUser = req.getParameter("adresse");
+CharSequenceTranslator cst = StringEscapeUtils.ESCAPE_HTML4;
+String adresseSafe = cst.translate(inputUser);
+// Maintenant adresseSafe est sécurisé pour affichage HTML
+// <script> devient &lt;script&gt;
+
+// VERSION RAPIDE en une ligne
+String safe = StringEscapeUtils.escapeHtml4(inputDangereux);
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 28. PROTECTION CONTRE XSS - Méthode basique (replaceAll)                ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+// Méthode basique (MOINS EFFICACE que StringEscapeUtils mais fonctionne)
+public static String escape(String input) {
+    if (input == null) return "";
+    return input
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("'", "&#39;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("&", "&amp;");
+}
+
+// Utilisation
+String nomSafe = escape(req.getParameter("nom"));
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 29. PROTECTION CONTRE SQL INJECTION - PreparedStatement                 ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+// ❌ MAUVAIS - Vulnérable à l'injection SQL
+String sql = "SELECT * FROM personne WHERE login='" + login + "' AND mdp='" + mdp + "'";
+Statement st = cnx.createStatement();
+ResultSet rs = st.executeQuery(sql);
+
+// ✅ BON - Utiliser PreparedStatement avec des ?
+String sql = "SELECT * FROM personne WHERE login = ? AND mdp = MD5(?)";
+PreparedStatement ps = cnx.prepareStatement(sql);
+ps.setString(1, login);
+ps.setString(2, mdp);
+System.out.println(ps);  // TOUJOURS afficher pour débugger !
+ResultSet rs = ps.executeQuery();
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 30. COOKIE HttpOnly (protection vol de session)                         ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+// Créer un cookie sécurisé (pas accessible via JavaScript)
+Cookie monCookie = new Cookie("monCookie", "valeur");
+monCookie.setHttpOnly(true);  // Protection contre vol de session !
+monCookie.setMaxAge(3600);    // 1 heure
+res.addCookie(monCookie);
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        TP 3.19 - JSP                                    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 31. STRUCTURE DE BASE D'UNE JSP                                         ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<%@ page pageEncoding="UTF-8" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ma Page</title>
+    <link rel="stylesheet" href="style-tp.css">
+</head>
+<body>
+    <h1>Hello World</h1>
+    
+    <%
+        // Code Java ici (scriptlet)
+        for (int i = 1; i <= 9; i++) {
+            out.println(i + " ");
+        }
+    %>
+    
+</body>
+</html>
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 32. JSP - DIRECTIVES IMPORTANTES                                        ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<!-- Encodage UTF-8 (TOUJOURS en première ligne !) -->
+<%@ page pageEncoding="UTF-8" %>
+
+<!-- Import de classes Java -->
+<%@ page import="java.sql.*" %>
+<%@ page import="java.util.*" %>
+<%@ page import="dao.Joueur" %>
+<%@ page import="dao.JoueurDao" %>
+
+<!-- Plusieurs imports en une ligne -->
+<%@ page import="java.sql.*, java.util.*, dao.*" %>
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 33. JSP - SCRIPTLETS, EXPRESSIONS, DÉCLARATIONS                         ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<!-- SCRIPTLET : code Java entre <% %> -->
+<%
+    String nom = request.getParameter("nom");
+    int age = 25;
+%>
+
+<!-- EXPRESSION : afficher une valeur avec <%= %> (pas de point-virgule !) -->
+<p>Bonjour <%= nom %>, tu as <%= age %> ans</p>
+
+<!-- DÉCLARATION : déclarer variables/méthodes globales avec <%! %> -->
+<%!
+    // Variable de classe (partagée entre toutes les requêtes)
+    int compteur = 0;
+    
+    // Méthode utilisable dans la JSP
+    public String formater(String s) {
+        return s.toUpperCase();
+    }
+%>
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 34. JSP - ACCÈS BASE DE DONNÉES                                         ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<%@ page pageEncoding="UTF-8" %>
+<%@ page import="java.sql.*" %>
+<!DOCTYPE html>
+<html>
+<head><title>Liste</title></head>
+<body>
+<table border="1">
+    <tr><th>ID</th><th>Nom</th><th>Email</th></tr>
+<%
+    String url = "jdbc:postgresql://localhost:5432/mabase";
+    String user = "postgres";
+    String pass = "mdp";
+    
+    try (Connection cnx = DriverManager.getConnection(url, user, pass)) {
+        String sql = "SELECT * FROM joueur";
+        PreparedStatement ps = cnx.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+        
+        while (rs.next()) {
+%>
+    <tr>
+        <td><%= rs.getInt("jno") %></td>
+        <td><%= rs.getString("pseudo") %></td>
+        <td><%= rs.getString("email") %></td>
+    </tr>
+<%
+        }
+    } catch (SQLException e) {
+        out.println("Erreur : " + e.getMessage());
+    }
+%>
+</table>
+</body>
+</html>
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 35. JSP - ACCÈS À UN OBJET (avec package obligatoire !)                 ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<%@ page pageEncoding="UTF-8" %>
+<%@ page import="dao.JoueurDao" %>
+<%@ page import="dao.Joueur" %>
+<!DOCTYPE html>
+<html>
+<body>
+<%
+    // Récupérer le paramètre
+    int id = Integer.parseInt(request.getParameter("id"));
+    
+    // Utiliser le DAO
+    JoueurDao dao = new JoueurDao();
+    Joueur j = dao.findById(id);
+    
+    if (j != null) {
+%>
+    <h1>Joueur : <%= j.getPseudo() %></h1>
+    <p>Email : <%= j.getEmail() %></p>
+    <p>ELO : <%= j.getElo() %></p>
+<%
+    } else {
+        out.println("<p>Joueur non trouvé</p>");
+    }
+%>
+</body>
+</html>
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 36. JSP - COMPTEUR DE VISITES (session vs application)                  ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<!-- Compteur PAR UTILISATEUR (session) -->
+<%
+    Integer compteurSession = (Integer) session.getAttribute("compteur");
+    if (compteurSession == null) compteurSession = 0;
+    compteurSession++;
+    session.setAttribute("compteur", compteurSession);
+%>
+<p>Vous avez visité cette page <%= compteurSession %> fois</p>
+
+<!-- Compteur GLOBAL (application/contexte) -->
+<%!
+    int compteurGlobal = 0;
+%>
+<%
+    compteurGlobal++;
+%>
+<p>Cette page a été vue <%= compteurGlobal %> fois au total</p>
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    TP 3.20 - DAO (Data Access Object)                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 37. POJO / DTO - Objet métier (ex: Joueur)                              ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+package dao;
+
+public class Joueur {
+    private int jno;
+    private String pseudo;
+    private String email;
+    private String pwd;
+    private int elo;
+    
+    // Constructeur vide
+    public Joueur() {}
+    
+    // Constructeur complet
+    public Joueur(int jno, String pseudo, String email, String pwd, int elo) {
+        this.jno = jno;
+        this.pseudo = pseudo;
+        this.email = email;
+        this.pwd = pwd;
+        this.elo = elo;
+    }
+    
+    // Getters
+    public int getJno() { return jno; }
+    public String getPseudo() { return pseudo; }
+    public String getEmail() { return email; }
+    public String getPwd() { return pwd; }
+    public int getElo() { return elo; }
+    
+    // Setters
+    public void setJno(int jno) { this.jno = jno; }
+    public void setPseudo(String pseudo) { this.pseudo = pseudo; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPwd(String pwd) { this.pwd = pwd; }
+    public void setElo(int elo) { this.elo = elo; }
+    
+    // toString (sans mot de passe !)
+    @Override
+    public String toString() {
+        return "Joueur [" + jno + "] " + pseudo + " (" + email + ") ELO: " + elo;
+    }
+}
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 38. CLASSE DS - DataSource / Connexion centralisée                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+package dao;
+
+import java.io.FileInputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.Properties;
+
+public class DS {
+    private String url;
+    private String login;
+    private String password;
+    
+    public DS() {
+        try {
+            Properties props = new Properties();
+            // Chemin vers config.prop (adapter selon votre structure)
+            props.load(new FileInputStream("resources/config.prop"));
+            
+            Class.forName(props.getProperty("driver"));
+            this.url = props.getProperty("url");
+            this.login = props.getProperty("login");
+            this.password = props.getProperty("password");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public Connection getConnection() {
+        try {
+            return DriverManager.getConnection(url, login, password);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
+
+// FICHIER config.prop (dans resources/)
+// driver=org.postgresql.Driver
+// url=jdbc:postgresql://localhost:5432/mabase
+// login=postgres
+// password=mdp
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 39. DAO COMPLET - JoueurDao avec CRUD                                   ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+package dao;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class JoueurDao {
+    private DS ds;
+    
+    public JoueurDao() {
+        this.ds = new DS();
+    }
+    
+    // CREATE - Ajouter un joueur
+    public void create(Joueur j) {
+        String sql = "INSERT INTO joueur (pseudo, email, pwd, elo) VALUES (?, ?, ?, ?)";
+        try (Connection cnx = ds.getConnection();
+             PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setString(1, j.getPseudo());
+            ps.setString(2, j.getEmail());
+            ps.setString(3, j.getPwd());
+            ps.setInt(4, j.getElo());
+            System.out.println(ps);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Erreur create: " + e.getMessage());
+        }
+    }
+    
+    // READ - Trouver par ID
+    public Joueur findById(int id) {
+        String sql = "SELECT * FROM joueur WHERE jno = ?";
+        try (Connection cnx = ds.getConnection();
+             PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            System.out.println(ps);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Joueur(
+                    rs.getInt("jno"),
+                    rs.getString("pseudo"),
+                    rs.getString("email"),
+                    rs.getString("pwd"),
+                    rs.getInt("elo")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur findById: " + e.getMessage());
+        }
+        return null;
+    }
+    
+    // READ ALL - Tous les joueurs
+    public List<Joueur> findAll() {
+        List<Joueur> liste = new ArrayList<>();
+        String sql = "SELECT * FROM joueur ORDER BY elo DESC";
+        try (Connection cnx = ds.getConnection();
+             PreparedStatement ps = cnx.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                liste.add(new Joueur(
+                    rs.getInt("jno"),
+                    rs.getString("pseudo"),
+                    rs.getString("email"),
+                    rs.getString("pwd"),
+                    rs.getInt("elo")
+                ));
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur findAll: " + e.getMessage());
+        }
+        return liste;
+    }
+    
+    // UPDATE - Modifier un joueur
+    public void update(Joueur j) {
+        String sql = "UPDATE joueur SET pseudo=?, email=?, elo=? WHERE jno=?";
+        try (Connection cnx = ds.getConnection();
+             PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setString(1, j.getPseudo());
+            ps.setString(2, j.getEmail());
+            ps.setInt(3, j.getElo());
+            ps.setInt(4, j.getJno());
+            System.out.println(ps);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Erreur update: " + e.getMessage());
+        }
+    }
+    
+    // DELETE - Supprimer un joueur
+    public void delete(int id) {
+        String sql = "DELETE FROM joueur WHERE jno = ?";
+        try (Connection cnx = ds.getConnection();
+             PreparedStatement ps = cnx.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            System.out.println(ps);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Erreur delete: " + e.getMessage());
+        }
+    }
+}
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 40. UTILISATION DU DAO DANS UNE SERVLET                                 ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+import java.io.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.WebServlet;
+import dao.Joueur;
+import dao.JoueurDao;
+
+@WebServlet("/listerJoueurs")
+public class ListerJoueurs extends HttpServlet {
+    public void doGet(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        res.setContentType("text/html;charset=UTF-8");
+        PrintWriter out = res.getWriter();
+        
+        JoueurDao dao = new JoueurDao();
+        
+        out.println("<html><body>");
+        out.println("<h1>Liste des joueurs</h1>");
+        out.println("<table border='1'>");
+        out.println("<tr><th>ID</th><th>Pseudo</th><th>Email</th><th>ELO</th><th>Actions</th></tr>");
+        
+        for (Joueur j : dao.findAll()) {
+            out.println("<tr>");
+            out.println("<td>" + j.getJno() + "</td>");
+            out.println("<td>" + j.getPseudo() + "</td>");
+            out.println("<td>" + j.getEmail() + "</td>");
+            out.println("<td>" + j.getElo() + "</td>");
+            out.println("<td><a href='supprimer?id=" + j.getJno() + "'>Supprimer</a></td>");
+            out.println("</tr>");
+        }
+        
+        out.println("</table>");
+        out.println("</body></html>");
+    }
+}
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 41. UTILISATION DU DAO DANS UNE JSP                                     ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<%@ page pageEncoding="UTF-8" %>
+<%@ page import="dao.*, java.util.*" %>
+<!DOCTYPE html>
+<html>
+<head><title>Liste Joueurs</title></head>
+<body>
+<h1>Liste des joueurs</h1>
+<table border="1">
+    <tr><th>ID</th><th>Pseudo</th><th>Email</th><th>ELO</th><th>Actions</th></tr>
+<%
+    JoueurDao dao = new JoueurDao();
+    List<Joueur> joueurs = dao.findAll();
+    
+    for (Joueur j : joueurs) {
+%>
+    <tr>
+        <td><%= j.getJno() %></td>
+        <td><%= j.getPseudo() %></td>
+        <td><%= j.getEmail() %></td>
+        <td><%= j.getElo() %></td>
+        <td>
+            <a href="voir.jsp?id=<%= j.getJno() %>">Voir</a>
+            <a href="supprimer?id=<%= j.getJno() %>">Supprimer</a>
+        </td>
+    </tr>
+<%
+    }
+%>
+</table>
+<p><a href="ajouter.html">Ajouter un joueur</a></p>
+</body>
+</html>
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                   TP 3.21 - MVC (Model View Controller)                 │
+└─────────────────────────────────────────────────────────────────────────┘
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 42. STRUCTURE MVC - Arborescence                                        ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+tp321/
+├── META-INF/
+│   └── context.xml
+├── WEB-INF/
+│   ├── src/
+│   │   ├── controleur/
+│   │   │   └── Control.java        ← CONTRÔLEUR (Servlet)
+│   │   └── modele/
+│   │       └── DAO.java            ← MODÈLE (accès données)
+│   ├── vue/
+│   │   ├── Liste.jsp               ← VUE (affichage liste)
+│   │   └── Vignette.jsp            ← VUE (affichage détail)
+│   ├── classes/
+│   └── web.xml
+└── resources/
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 43. MVC - CONTRÔLEUR (Servlet centrale)                                 ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+package controleur;
+
+import java.io.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.WebServlet;
+import modele.DAO;
+import java.util.List;
+
+@WebServlet("/control")
+public class Control extends HttpServlet {
+    
+    public void doGet(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        doPost(req, res);
+    }
+    
+    public void doPost(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        
+        // Récupérer l'action demandée
+        String action = req.getParameter("action");
+        if (action == null) action = "liste";  // action par défaut
+        
+        // Instancier le modèle (DAO)
+        DAO dao = new DAO();
+        
+        // Selon l'action, préparer les données et choisir la vue
+        String vue = "";
+        
+        switch (action) {
+            case "liste":
+                // Récupérer toutes les données
+                List<String> liste = dao.findAll();
+                req.setAttribute("liste", liste);
+                vue = "/WEB-INF/vue/Liste.jsp";
+                break;
+                
+            case "vignette":
+                // Récupérer un élément par son index
+                int id = Integer.parseInt(req.getParameter("id"));
+                String element = dao.findById(id);
+                req.setAttribute("element", element);
+                req.setAttribute("id", id);
+                vue = "/WEB-INF/vue/Vignette.jsp";
+                break;
+                
+            case "ajouter":
+                String nouveau = req.getParameter("valeur");
+                dao.create(nouveau);
+                res.sendRedirect("control?action=liste");
+                return;
+                
+            case "supprimer":
+                int idSuppr = Integer.parseInt(req.getParameter("id"));
+                dao.delete(idSuppr);
+                res.sendRedirect("control?action=liste");
+                return;
+                
+            default:
+                vue = "/WEB-INF/vue/Liste.jsp";
+        }
+        
+        // Forward vers la vue choisie
+        RequestDispatcher rd = req.getRequestDispatcher(vue);
+        rd.forward(req, res);
+    }
+}
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 44. MVC - MODÈLE (DAO simple)                                           ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+package modele;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DAO {
+    private List<String> liste;
+    
+    public DAO() {
+        // Données en dur (ou connexion BDD)
+        liste = new ArrayList<>();
+        liste.add("Premier élément");
+        liste.add("Deuxième élément");
+        liste.add("Troisième élément");
+    }
+    
+    public List<String> findAll() {
+        return liste;
+    }
+    
+    public String findById(int id) {
+        // Modulo pour éviter les dépassements
+        return liste.get(id % liste.size());
+    }
+    
+    public void create(String valeur) {
+        liste.add(valeur);
+    }
+    
+    public void delete(int id) {
+        if (id >= 0 && id < liste.size()) {
+            liste.remove(id);
+        }
+    }
+}
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 45. MVC - VUE Liste.jsp                                                 ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<%@ page pageEncoding="UTF-8" %>
+<%@ page import="java.util.*" %>
+<!DOCTYPE html>
+<html>
+<head><title>Liste</title></head>
+<body>
+<h1>Liste des éléments</h1>
+
+<%
+    List<String> liste = (List<String>) request.getAttribute("liste");
+    int i = 0;
+    for (String elem : liste) {
+%>
+    <p>
+        <%= elem %>
+        <a href="control?action=vignette&id=<%= i %>">[Voir]</a>
+        <a href="control?action=supprimer&id=<%= i %>">[Supprimer]</a>
+    </p>
+<%
+        i++;
+    }
+%>
+
+<hr>
+<form action="control" method="post">
+    <input type="hidden" name="action" value="ajouter">
+    <input type="text" name="valeur" placeholder="Nouvel élément">
+    <button type="submit">Ajouter</button>
+</form>
+
+</body>
+</html>
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 46. MVC - VUE Vignette.jsp                                              ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+<%@ page pageEncoding="UTF-8" %>
+<!DOCTYPE html>
+<html>
+<head><title>Détail</title></head>
+<body>
+
+<%
+    String element = (String) request.getAttribute("element");
+    Integer id = (Integer) request.getAttribute("id");
+%>
+
+<h1>Détail de l'élément n°<%= id %></h1>
+<p><%= element %></p>
+
+<a href="control?action=liste">Retour à la liste</a>
+
+</body>
+</html>
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 47. MVC - Forward vs Redirect                                           ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+// FORWARD - Passer à une JSP en gardant les attributs de requête
+// L'URL dans le navigateur NE CHANGE PAS
+req.setAttribute("data", monObjet);
+RequestDispatcher rd = req.getRequestDispatcher("/WEB-INF/vue/MaPage.jsp");
+rd.forward(req, res);
+
+// REDIRECT - Rediriger vers une autre URL
+// L'URL dans le navigateur CHANGE
+// Les attributs de requête sont PERDUS
+res.sendRedirect("control?action=liste");
+
+// QUAND UTILISER QUOI ?
+// - Forward  : après lecture (GET) → afficher une vue
+// - Redirect : après modification (POST) → éviter re-soumission du formulaire
+
+
+╔═════════════════════════════════════════════════════════════════════════╗
+║ 48. MVC COMPLET - Exemple avec BDD (parties d'échecs)                   ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+// Dans le contrôleur (avec DAO réels)
+case "voir":
+    int pno = Integer.parseInt(req.getParameter("pno"));
+    PartieDao partieDao = new PartieDao();
+    JoueurDao joueurDao = new JoueurDao();
+    
+    Partie partie = partieDao.findById(pno);
+    Joueur joueur1 = joueurDao.findById(partie.getJno1());
+    Joueur joueur2 = joueurDao.findById(partie.getJno2());
+    
+    req.setAttribute("partie", partie);
+    req.setAttribute("joueur1", joueur1);
+    req.setAttribute("joueur2", joueur2);
+    
+    RequestDispatcher rd = req.getRequestDispatcher("/WEB-INF/vue/voir.jsp");
+    rd.forward(req, res);
+    break;
+
+case "modifier":
+    int pnoMod = Integer.parseInt(req.getParameter("pno"));
+    PartieDao pDao = new PartieDao();
+    JoueurDao jDao = new JoueurDao();
+    
+    Partie p = pDao.findById(pnoMod);
+    List<Joueur> tousJoueurs = jDao.findAll();
+    
+    req.setAttribute("partie", p);
+    req.setAttribute("joueurs", tousJoueurs);
+    
+    RequestDispatcher rdMod = req.getRequestDispatcher("/WEB-INF/vue/modifier.jsp");
+    rdMod.forward(req, res);
+    break;
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    RÉSUMÉ - COMMANDES COMPILATION                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+# Compiler une servlet
+javac -cp "$CLASSPATH" -d WEB-INF/classes WEB-INF/src/*.java
+
+# Compiler avec package (DAO, controleur, etc.)
+javac -cp "$CLASSPATH" -d WEB-INF/classes WEB-INF/src/dao/*.java
+javac -cp "$CLASSPATH" -d WEB-INF/classes WEB-INF/src/controleur/*.java
+
+# Compiler tout d'un coup
+javac -cp "$CLASSPATH" -d WEB-INF/classes WEB-INF/src/**/*.java
+
+# Les JSP n'ont PAS besoin d'être compilées (Tomcat s'en charge)
+
+# Redémarrer Tomcat après modification de servlets
+~/tomcat/bin/shutdown.sh
+~/tomcat/bin/startup.sh
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    RAPPELS IMPORTANTS                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+1. JSP = Servlet écrite différemment
+   - Plus de HTML → utiliser JSP
+   - Plus de code → utiliser Servlet
+
+2. DAO = Factoriser le code d'accès BDD
+   - Un DTO/POJO par table (Joueur.java)
+   - Un DAO par table (JoueurDao.java)
+   - CRUD : Create, Read (findById, findAll), Update, Delete
+
+3. MVC = Séparer les responsabilités
+   - Modèle (M) : DAO, accès données
+   - Vue (V) : JSP, affichage HTML
+   - Contrôleur (C) : Servlet, logique métier
+
+4. Sécurité
+   - XSS : StringEscapeUtils.escapeHtml4() ou escape manuel
+   - SQL Injection : TOUJOURS PreparedStatement avec ?
+   - Vol session : setHttpOnly(true) sur les cookies
+
+5. Débuggage
+   - JAMAIS de catch vide : toujours e.getMessage()
+   - System.out.println(preparedStatement) avant executeQuery/Update

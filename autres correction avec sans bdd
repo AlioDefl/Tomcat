@@ -1,0 +1,1365 @@
+# CORRECTION CTP - MENU RESTAURANT
+
+## Partie 1 : Sans BDD | Partie 2 : Avec DAO
+
+-----
+
+# ══════════════════════════════════════════════════════════════
+
+# PARTIE 1 : SANS BASE DE DONNÉES
+
+# ══════════════════════════════════════════════════════════════
+
+## Structure
+
+```
+restaurant/
+├── WEB-INF/
+│   ├── src/
+│   │   └── controleur/
+│   │       └── MenuControl.java
+│   ├── vue/
+│   │   ├── entree.jsp
+│   │   ├── plat.jsp
+│   │   ├── dessert.jsp
+│   │   └── recap.jsp
+│   ├── classes/
+│   └── web.xml
+└── index.html
+```
+
+-----
+
+## index.html
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurant</title>
+    <meta http-equiv="refresh" content="0; URL=MenuControl?action=entree">
+</head>
+<body>
+    <p>Redirection...</p>
+    <a href="MenuControl?action=entree">Accéder au menu</a>
+</body>
+</html>
+```
+
+-----
+
+## web.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee" version="5.0">
+    
+    <servlet>
+        <servlet-name>MenuControl</servlet-name>
+        <servlet-class>controleur.MenuControl</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>MenuControl</servlet-name>
+        <url-pattern>/MenuControl</url-pattern>
+    </servlet-mapping>
+    
+</web-app>
+```
+
+-----
+
+## MenuControl.java (Partie 1 - Sans BDD)
+
+```java
+package controleur;
+
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.WebServlet;
+import java.io.*;
+
+@WebServlet("/MenuControl")
+public class MenuControl extends HttpServlet {
+    
+    public void doGet(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        
+        // ══════════════════════════════════════════════════════════
+        // ENCODAGE UTF-8 - TOUJOURS EN PREMIER !
+        // ══════════════════════════════════════════════════════════
+        req.setCharacterEncoding("UTF-8");
+        res.setContentType("text/html; charset=UTF-8");
+        
+        // ══════════════════════════════════════════════════════════
+        // RÉCUPÉRER LA SESSION
+        // true = crée la session si elle n'existe pas
+        // ══════════════════════════════════════════════════════════
+        HttpSession session = req.getSession(true);
+        
+        // ══════════════════════════════════════════════════════════
+        // RÉCUPÉRER L'ACTION
+        // ══════════════════════════════════════════════════════════
+        String action = req.getParameter("action");
+        if (action == null) {
+            action = "entree";  // Action par défaut
+        }
+        
+        // ══════════════════════════════════════════════════════════
+        // SWITCH SUR L'ACTION
+        // ══════════════════════════════════════════════════════════
+        switch (action) {
+            
+            // ==================== PAGE ENTRÉE ====================
+            case "entree":
+                // Juste afficher la page (les radios sont en dur dans la JSP)
+                req.getRequestDispatcher("/WEB-INF/vue/entree.jsp").forward(req, res);
+                break;
+            
+            // ==================== VALIDER ENTRÉE ====================
+            case "validerEntree":
+                // Récupérer le choix du formulaire (name="entree" dans le radio)
+                String entreeChoisie = req.getParameter("entree");
+                
+                // Stocker en session si non vide
+                if (entreeChoisie != null && !entreeChoisie.isEmpty()) {
+                    session.setAttribute("entree", entreeChoisie);
+                }
+                
+                // Rediriger vers la page suivante (REDIRECT, pas forward !)
+                res.sendRedirect("MenuControl?action=plat");
+                break;
+            
+            // ==================== PAGE PLAT ====================
+            case "plat":
+                req.getRequestDispatcher("/WEB-INF/vue/plat.jsp").forward(req, res);
+                break;
+            
+            // ==================== VALIDER PLAT ====================
+            case "validerPlat":
+                String platChoisi = req.getParameter("plat");
+                
+                if (platChoisi != null && !platChoisi.isEmpty()) {
+                    session.setAttribute("plat", platChoisi);
+                }
+                
+                res.sendRedirect("MenuControl?action=dessert");
+                break;
+            
+            // ==================== PAGE DESSERT ====================
+            case "dessert":
+                req.getRequestDispatcher("/WEB-INF/vue/dessert.jsp").forward(req, res);
+                break;
+            
+            // ==================== VALIDER DESSERT ====================
+            case "validerDessert":
+                String dessertChoisi = req.getParameter("dessert");
+                
+                if (dessertChoisi != null && !dessertChoisi.isEmpty()) {
+                    session.setAttribute("dessert", dessertChoisi);
+                }
+                
+                res.sendRedirect("MenuControl?action=recap");
+                break;
+            
+            // ==================== PAGE RÉCAPITULATIF ====================
+            case "recap":
+                // Les données sont en session, la JSP les récupère directement
+                req.getRequestDispatcher("/WEB-INF/vue/recap.jsp").forward(req, res);
+                break;
+            
+            // ==================== RECOMMENCER ====================
+            case "reset":
+                // Vider toute la session
+                session.invalidate();
+                res.sendRedirect("MenuControl?action=entree");
+                break;
+            
+            // ==================== PAR DÉFAUT ====================
+            default:
+                res.sendRedirect("MenuControl?action=entree");
+        }
+    }
+    
+    // POST appelle GET (pour gérer les formulaires)
+    public void doPost(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        doGet(req, res);
+    }
+}
+```
+
+-----
+
+## entree.jsp (Partie 1 - Radio en dur)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%
+    // ══════════════════════════════════════════════════════════
+    // RÉCUPÉRER LE CHOIX PRÉCÉDENT DEPUIS LA SESSION
+    // Pour pré-cocher le radio si on revient sur cette page
+    // ══════════════════════════════════════════════════════════
+    String entreeChoisie = (String) session.getAttribute("entree");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix de l'entrée</title>
+</head>
+<body>
+
+    <h1>Restaurant - Menu</h1>
+    
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- NAVIGATION                                                  -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <nav>
+        <strong>1. Entrée</strong> | 
+        <a href="MenuControl?action=plat">2. Plat</a> | 
+        <a href="MenuControl?action=dessert">3. Dessert</a> | 
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre entrée :</h2>
+    
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- FORMULAIRE AVEC RADIO BUTTONS                               -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <form action="MenuControl" method="POST">
+    
+        <!-- Champ caché pour l'action -->
+        <input type="hidden" name="action" value="validerEntree">
+        
+        <!-- ====================================================== -->
+        <!-- RADIO BUTTONS EN DUR                                    -->
+        <!-- name="entree" : même nom pour tout le groupe            -->
+        <!-- value="..." : valeur envoyée au serveur                 -->
+        <!-- checked : pré-sélectionné si condition vraie            -->
+        <!-- ====================================================== -->
+        
+        <input type="radio" name="entree" value="Salade César" id="e1"
+            <%= "Salade César".equals(entreeChoisie) ? "checked" : "" %>>
+        <label for="e1">Salade César - 8€</label>
+        <br><br>
+        
+        <input type="radio" name="entree" value="Soupe à l'oignon" id="e2"
+            <%= "Soupe à l'oignon".equals(entreeChoisie) ? "checked" : "" %>>
+        <label for="e2">Soupe à l'oignon - 7€</label>
+        <br><br>
+        
+        <input type="radio" name="entree" value="Foie gras" id="e3"
+            <%= "Foie gras".equals(entreeChoisie) ? "checked" : "" %>>
+        <label for="e3">Foie gras - 15€</label>
+        <br><br>
+        
+        <input type="radio" name="entree" value="Huîtres" id="e4"
+            <%= "Huîtres".equals(entreeChoisie) ? "checked" : "" %>>
+        <label for="e4">Huîtres - 12€</label>
+        <br><br>
+        
+        <br>
+        <button type="submit">Valider et passer au plat →</button>
+        
+    </form>
+
+</body>
+</html>
+```
+
+-----
+
+## plat.jsp (Partie 1 - Radio en dur)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%
+    String platChoisi = (String) session.getAttribute("plat");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix du plat</title>
+</head>
+<body>
+
+    <h1>Restaurant - Menu</h1>
+    
+    <nav>
+        <a href="MenuControl?action=entree">1. Entrée</a> | 
+        <strong>2. Plat</strong> | 
+        <a href="MenuControl?action=dessert">3. Dessert</a> | 
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre plat :</h2>
+    
+    <form action="MenuControl" method="POST">
+    
+        <input type="hidden" name="action" value="validerPlat">
+        
+        <input type="radio" name="plat" value="Steak frites" id="p1"
+            <%= "Steak frites".equals(platChoisi) ? "checked" : "" %>>
+        <label for="p1">Steak frites - 18€</label>
+        <br><br>
+        
+        <input type="radio" name="plat" value="Saumon grillé" id="p2"
+            <%= "Saumon grillé".equals(platChoisi) ? "checked" : "" %>>
+        <label for="p2">Saumon grillé - 22€</label>
+        <br><br>
+        
+        <input type="radio" name="plat" value="Poulet rôti" id="p3"
+            <%= "Poulet rôti".equals(platChoisi) ? "checked" : "" %>>
+        <label for="p3">Poulet rôti - 16€</label>
+        <br><br>
+        
+        <input type="radio" name="plat" value="Risotto" id="p4"
+            <%= "Risotto".equals(platChoisi) ? "checked" : "" %>>
+        <label for="p4">Risotto - 14€</label>
+        <br><br>
+        
+        <br>
+        <button type="submit">Valider et passer au dessert →</button>
+        
+    </form>
+    
+    <br>
+    <a href="MenuControl?action=entree">← Retour aux entrées</a>
+
+</body>
+</html>
+```
+
+-----
+
+## dessert.jsp (Partie 1 - Radio en dur)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%
+    String dessertChoisi = (String) session.getAttribute("dessert");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix du dessert</title>
+</head>
+<body>
+
+    <h1>Restaurant - Menu</h1>
+    
+    <nav>
+        <a href="MenuControl?action=entree">1. Entrée</a> | 
+        <a href="MenuControl?action=plat">2. Plat</a> | 
+        <strong>3. Dessert</strong> | 
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre dessert :</h2>
+    
+    <form action="MenuControl" method="POST">
+    
+        <input type="hidden" name="action" value="validerDessert">
+        
+        <input type="radio" name="dessert" value="Tarte aux pommes" id="d1"
+            <%= "Tarte aux pommes".equals(dessertChoisi) ? "checked" : "" %>>
+        <label for="d1">Tarte aux pommes - 7€</label>
+        <br><br>
+        
+        <input type="radio" name="dessert" value="Mousse au chocolat" id="d2"
+            <%= "Mousse au chocolat".equals(dessertChoisi) ? "checked" : "" %>>
+        <label for="d2">Mousse au chocolat - 8€</label>
+        <br><br>
+        
+        <input type="radio" name="dessert" value="Crème brûlée" id="d3"
+            <%= "Crème brûlée".equals(dessertChoisi) ? "checked" : "" %>>
+        <label for="d3">Crème brûlée - 9€</label>
+        <br><br>
+        
+        <input type="radio" name="dessert" value="Glace artisanale" id="d4"
+            <%= "Glace artisanale".equals(dessertChoisi) ? "checked" : "" %>>
+        <label for="d4">Glace artisanale - 6€</label>
+        <br><br>
+        
+        <br>
+        <button type="submit">Valider et voir le récapitulatif →</button>
+        
+    </form>
+    
+    <br>
+    <a href="MenuControl?action=plat">← Retour aux plats</a>
+
+</body>
+</html>
+```
+
+-----
+
+## recap.jsp (Partie 1)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%
+    // ══════════════════════════════════════════════════════════
+    // RÉCUPÉRER LES CHOIX DEPUIS LA SESSION
+    // ══════════════════════════════════════════════════════════
+    String entree = (String) session.getAttribute("entree");
+    String plat = (String) session.getAttribute("plat");
+    String dessert = (String) session.getAttribute("dessert");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Récapitulatif</title>
+</head>
+<body>
+
+    <h1>Restaurant - Menu</h1>
+    
+    <nav>
+        <a href="MenuControl?action=entree">1. Entrée</a> | 
+        <a href="MenuControl?action=plat">2. Plat</a> | 
+        <a href="MenuControl?action=dessert">3. Dessert</a> | 
+        <strong>Récapitulatif</strong>
+    </nav>
+    
+    <hr>
+    
+    <h2>Votre commande :</h2>
+    
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- TABLEAU RÉCAPITULATIF                                       -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Catégorie</th>
+            <th>Votre choix</th>
+            <th>Action</th>
+        </tr>
+        
+        <!-- ENTRÉE -->
+        <tr>
+            <td>Entrée</td>
+            <td>
+                <% if (entree != null) { %>
+                    <%= entree %>
+                <% } else { %>
+                    <em>Non choisie</em>
+                <% } %>
+            </td>
+            <td><a href="MenuControl?action=entree">Modifier</a></td>
+        </tr>
+        
+        <!-- PLAT -->
+        <tr>
+            <td>Plat</td>
+            <td>
+                <% if (plat != null) { %>
+                    <%= plat %>
+                <% } else { %>
+                    <em>Non choisi</em>
+                <% } %>
+            </td>
+            <td><a href="MenuControl?action=plat">Modifier</a></td>
+        </tr>
+        
+        <!-- DESSERT -->
+        <tr>
+            <td>Dessert</td>
+            <td>
+                <% if (dessert != null) { %>
+                    <%= dessert %>
+                <% } else { %>
+                    <em>Non choisi</em>
+                <% } %>
+            </td>
+            <td><a href="MenuControl?action=dessert">Modifier</a></td>
+        </tr>
+    </table>
+    
+    <br>
+    
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- MESSAGE SELON ÉTAT DE LA COMMANDE                           -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <% if (entree != null && plat != null && dessert != null) { %>
+        <p style="color: green; font-weight: bold;">
+            ✅ Commande complète !
+        </p>
+        <button onclick="alert('Commande envoyée !')">Confirmer</button>
+    <% } else { %>
+        <p style="color: orange;">
+            ⚠️ Commande incomplète
+        </p>
+    <% } %>
+    
+    <br><br>
+    
+    <!-- BOUTON RECOMMENCER -->
+    <a href="MenuControl?action=reset">Recommencer</a>
+
+</body>
+</html>
+```
+
+-----
+
+## Compilation Partie 1
+
+```bash
+cd restaurant/WEB-INF/src
+javac controleur/MenuControl.java -d ../classes
+```
+
+**Note :** Pas besoin de `-cp` car pas de dépendances externes (pas de BDD).
+
+Si erreur avec jakarta, ajouter le classpath Tomcat :
+
+```bash
+javac -cp "/chemin/vers/tomcat/lib/*" controleur/MenuControl.java -d ../classes
+```
+
+-----
+
+# ══════════════════════════════════════════════════════════════
+
+# PARTIE 2 : AVEC BASE DE DONNÉES (DAO)
+
+# ══════════════════════════════════════════════════════════════
+
+## Nouvelle structure
+
+```
+restaurant/
+├── WEB-INF/
+│   ├── src/
+│   │   ├── controleur/
+│   │   │   └── MenuControl.java    ← MODIFIÉ
+│   │   └── modele/
+│   │       ├── Plat.java           ← NOUVEAU (DTO)
+│   │       └── PlatDAO.java        ← NOUVEAU (DAO)
+│   ├── vue/
+│   │   ├── entree.jsp              ← MODIFIÉ
+│   │   ├── plat.jsp                ← MODIFIÉ
+│   │   ├── dessert.jsp             ← MODIFIÉ
+│   │   └── recap.jsp               ← MODIFIÉ
+│   ├── lib/
+│   │   └── postgresql-42.7.3.jar   ← NOUVEAU
+│   ├── classes/
+│   └── web.xml
+└── index.html
+```
+
+-----
+
+## Table SQL
+
+```sql
+-- Créer la table
+CREATE TABLE plat (
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    prix DECIMAL(5,2) NOT NULL,
+    categorie VARCHAR(20) NOT NULL  -- 'entree', 'plat', 'dessert'
+);
+
+-- Insérer les données
+INSERT INTO plat (nom, prix, categorie) VALUES
+-- Entrées
+('Salade César', 8.00, 'entree'),
+('Soupe à l''oignon', 7.00, 'entree'),
+('Foie gras', 15.00, 'entree'),
+('Huîtres', 12.00, 'entree'),
+-- Plats
+('Steak frites', 18.00, 'plat'),
+('Saumon grillé', 22.00, 'plat'),
+('Poulet rôti', 16.00, 'plat'),
+('Risotto', 14.00, 'plat'),
+-- Desserts
+('Tarte aux pommes', 7.00, 'dessert'),
+('Mousse au chocolat', 8.00, 'dessert'),
+('Crème brûlée', 9.00, 'dessert'),
+('Glace artisanale', 6.00, 'dessert');
+```
+
+-----
+
+## Plat.java (DTO)
+
+```java
+package modele;
+
+/**
+ * DTO (Data Transfer Object) pour la table plat
+ * Un attribut par colonne de la table
+ */
+public class Plat {
+    
+    // ══════════════════════════════════════════════════════════
+    // ATTRIBUTS (correspondent aux colonnes de la table)
+    // ══════════════════════════════════════════════════════════
+    private int id;            // id SERIAL PRIMARY KEY
+    private String nom;        // nom VARCHAR(100)
+    private double prix;       // prix DECIMAL(5,2)
+    private String categorie;  // categorie VARCHAR(20)
+    
+    // ══════════════════════════════════════════════════════════
+    // CONSTRUCTEUR VIDE (obligatoire pour un DTO)
+    // ══════════════════════════════════════════════════════════
+    public Plat() {
+    }
+    
+    // ══════════════════════════════════════════════════════════
+    // GETTERS ET SETTERS
+    // ══════════════════════════════════════════════════════════
+    
+    public int getId() {
+        return id;
+    }
+    
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    public String getNom() {
+        return nom;
+    }
+    
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+    
+    public double getPrix() {
+        return prix;
+    }
+    
+    public void setPrix(double prix) {
+        this.prix = prix;
+    }
+    
+    public String getCategorie() {
+        return categorie;
+    }
+    
+    public void setCategorie(String categorie) {
+        this.categorie = categorie;
+    }
+}
+```
+
+-----
+
+## PlatDAO.java
+
+```java
+package modele;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * DAO (Data Access Object) pour la table plat
+ * Gère toutes les requêtes vers la base de données
+ */
+public class PlatDAO {
+    
+    // ══════════════════════════════════════════════════════════
+    // CONSTANTES DE CONNEXION
+    // ══════════════════════════════════════════════════════════
+    private static final String URL = "jdbc:postgresql://localhost:5432/restaurant";
+    private static final String USER = "postgres";
+    private static final String PASS = "postgres";
+    
+    // ══════════════════════════════════════════════════════════
+    // FIND BY CATEGORIE
+    // Récupère tous les plats d'une catégorie
+    // ══════════════════════════════════════════════════════════
+    public List<Plat> findByCategorie(String categorie) {
+        List<Plat> liste = new ArrayList<>();
+        String sql = "SELECT * FROM plat WHERE categorie = ? ORDER BY nom";
+        
+        Connection cnx = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            // Connexion
+            cnx = DriverManager.getConnection(URL, USER, PASS);
+            
+            // Préparer la requête
+            pstmt = cnx.prepareStatement(sql);
+            pstmt.setString(1, categorie);
+            
+            // DEBUG : Afficher la requête
+            System.out.println(pstmt);
+            
+            // Exécuter
+            rs = pstmt.executeQuery();
+            
+            // Parcourir les résultats
+            while (rs.next()) {
+                Plat p = new Plat();
+                p.setId(rs.getInt("id"));
+                p.setNom(rs.getString("nom"));
+                p.setPrix(rs.getDouble("prix"));
+                p.setCategorie(rs.getString("categorie"));
+                liste.add(p);
+            }
+            
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            
+        } finally {
+            // Fermer les ressources
+            try { if (rs != null) rs.close(); } catch (SQLException e) {}
+            try { if (pstmt != null) pstmt.close(); } catch (SQLException e) {}
+            try { if (cnx != null) cnx.close(); } catch (SQLException e) {}
+        }
+        
+        return liste;
+    }
+    
+    // ══════════════════════════════════════════════════════════
+    // FIND BY ID
+    // Récupère un plat par son ID
+    // ══════════════════════════════════════════════════════════
+    public Plat findById(int id) {
+        Plat p = null;
+        String sql = "SELECT * FROM plat WHERE id = ?";
+        
+        Connection cnx = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            cnx = DriverManager.getConnection(URL, USER, PASS);
+            pstmt = cnx.prepareStatement(sql);
+            pstmt.setInt(1, id);
+            
+            System.out.println(pstmt);
+            
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                p = new Plat();
+                p.setId(rs.getInt("id"));
+                p.setNom(rs.getString("nom"));
+                p.setPrix(rs.getDouble("prix"));
+                p.setCategorie(rs.getString("categorie"));
+            }
+            
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            
+        } finally {
+            try { if (rs != null) rs.close(); } catch (SQLException e) {}
+            try { if (pstmt != null) pstmt.close(); } catch (SQLException e) {}
+            try { if (cnx != null) cnx.close(); } catch (SQLException e) {}
+        }
+        
+        return p;
+    }
+    
+    // ══════════════════════════════════════════════════════════
+    // FIND ALL
+    // Récupère tous les plats
+    // ══════════════════════════════════════════════════════════
+    public List<Plat> findAll() {
+        List<Plat> liste = new ArrayList<>();
+        String sql = "SELECT * FROM plat ORDER BY categorie, nom";
+        
+        Connection cnx = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            cnx = DriverManager.getConnection(URL, USER, PASS);
+            stmt = cnx.createStatement();
+            
+            rs = stmt.executeQuery(sql);
+            
+            while (rs.next()) {
+                Plat p = new Plat();
+                p.setId(rs.getInt("id"));
+                p.setNom(rs.getString("nom"));
+                p.setPrix(rs.getDouble("prix"));
+                p.setCategorie(rs.getString("categorie"));
+                liste.add(p);
+            }
+            
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            
+        } finally {
+            try { if (rs != null) rs.close(); } catch (SQLException e) {}
+            try { if (stmt != null) stmt.close(); } catch (SQLException e) {}
+            try { if (cnx != null) cnx.close(); } catch (SQLException e) {}
+        }
+        
+        return liste;
+    }
+}
+```
+
+-----
+
+## MenuControl.java (Partie 2 - Avec DAO)
+
+```java
+package controleur;
+
+import modele.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.WebServlet;
+import java.io.*;
+
+@WebServlet("/MenuControl")
+public class MenuControl extends HttpServlet {
+    
+    // ══════════════════════════════════════════════════════════
+    // DAO
+    // ══════════════════════════════════════════════════════════
+    private PlatDAO platDAO = new PlatDAO();
+    
+    public void doGet(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        
+        req.setCharacterEncoding("UTF-8");
+        res.setContentType("text/html; charset=UTF-8");
+        
+        HttpSession session = req.getSession(true);
+        
+        String action = req.getParameter("action");
+        if (action == null) {
+            action = "entree";
+        }
+        
+        switch (action) {
+            
+            // ==================== PAGE ENTRÉE ====================
+            case "entree":
+                // NOUVEAU : Charger les entrées depuis la BDD
+                req.setAttribute("plats", platDAO.findByCategorie("entree"));
+                req.getRequestDispatcher("/WEB-INF/vue/entree.jsp").forward(req, res);
+                break;
+            
+            // ==================== VALIDER ENTRÉE ====================
+            case "validerEntree":
+                String entreeIdStr = req.getParameter("entree");
+                
+                // NOUVEAU : On stocke l'ID (Integer) pas le nom
+                if (entreeIdStr != null && !entreeIdStr.isEmpty()) {
+                    session.setAttribute("entreeId", Integer.parseInt(entreeIdStr));
+                }
+                
+                res.sendRedirect("MenuControl?action=plat");
+                break;
+            
+            // ==================== PAGE PLAT ====================
+            case "plat":
+                req.setAttribute("plats", platDAO.findByCategorie("plat"));
+                req.getRequestDispatcher("/WEB-INF/vue/plat.jsp").forward(req, res);
+                break;
+            
+            // ==================== VALIDER PLAT ====================
+            case "validerPlat":
+                String platIdStr = req.getParameter("plat");
+                
+                if (platIdStr != null && !platIdStr.isEmpty()) {
+                    session.setAttribute("platId", Integer.parseInt(platIdStr));
+                }
+                
+                res.sendRedirect("MenuControl?action=dessert");
+                break;
+            
+            // ==================== PAGE DESSERT ====================
+            case "dessert":
+                req.setAttribute("plats", platDAO.findByCategorie("dessert"));
+                req.getRequestDispatcher("/WEB-INF/vue/dessert.jsp").forward(req, res);
+                break;
+            
+            // ==================== VALIDER DESSERT ====================
+            case "validerDessert":
+                String dessertIdStr = req.getParameter("dessert");
+                
+                if (dessertIdStr != null && !dessertIdStr.isEmpty()) {
+                    session.setAttribute("dessertId", Integer.parseInt(dessertIdStr));
+                }
+                
+                res.sendRedirect("MenuControl?action=recap");
+                break;
+            
+            // ==================== PAGE RÉCAPITULATIF ====================
+            case "recap":
+                // NOUVEAU : Charger les objets Plat depuis leurs IDs
+                Integer entreeId = (Integer) session.getAttribute("entreeId");
+                Integer platId = (Integer) session.getAttribute("platId");
+                Integer dessertId = (Integer) session.getAttribute("dessertId");
+                
+                if (entreeId != null) {
+                    req.setAttribute("entree", platDAO.findById(entreeId));
+                }
+                if (platId != null) {
+                    req.setAttribute("plat", platDAO.findById(platId));
+                }
+                if (dessertId != null) {
+                    req.setAttribute("dessert", platDAO.findById(dessertId));
+                }
+                
+                req.getRequestDispatcher("/WEB-INF/vue/recap.jsp").forward(req, res);
+                break;
+            
+            // ==================== RECOMMENCER ====================
+            case "reset":
+                session.invalidate();
+                res.sendRedirect("MenuControl?action=entree");
+                break;
+            
+            // ==================== PAR DÉFAUT ====================
+            default:
+                res.sendRedirect("MenuControl?action=entree");
+        }
+    }
+    
+    public void doPost(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        doGet(req, res);
+    }
+}
+```
+
+-----
+
+## entree.jsp (Partie 2 - Radio dynamiques)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.util.*, modele.*" %>
+<%
+    // ══════════════════════════════════════════════════════════
+    // RÉCUPÉRER LA LISTE DES PLATS (depuis le contrôleur)
+    // ══════════════════════════════════════════════════════════
+    List<Plat> plats = (List<Plat>) request.getAttribute("plats");
+    
+    // ══════════════════════════════════════════════════════════
+    // RÉCUPÉRER LE CHOIX PRÉCÉDENT (depuis la session)
+    // Attention : c'est un Integer (l'ID), pas un String
+    // ══════════════════════════════════════════════════════════
+    Integer entreeChoisie = (Integer) session.getAttribute("entreeId");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix de l'entrée</title>
+</head>
+<body>
+
+    <h1>Restaurant - Menu</h1>
+    
+    <nav>
+        <strong>1. Entrée</strong> | 
+        <a href="MenuControl?action=plat">2. Plat</a> | 
+        <a href="MenuControl?action=dessert">3. Dessert</a> | 
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre entrée :</h2>
+    
+    <form action="MenuControl" method="POST">
+    
+        <input type="hidden" name="action" value="validerEntree">
+        
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- RADIO BUTTONS DYNAMIQUES (boucle for)                   -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <% for (Plat p : plats) { %>
+        
+            <input type="radio" name="entree" 
+                   value="<%= p.getId() %>" 
+                   id="e<%= p.getId() %>"
+                   <%= (entreeChoisie != null && p.getId() == entreeChoisie) ? "checked" : "" %>>
+            <label for="e<%= p.getId() %>">
+                <%= p.getNom() %> - <%= p.getPrix() %>€
+            </label>
+            <br><br>
+            
+        <% } %>
+        
+        <br>
+        <button type="submit">Valider et passer au plat →</button>
+        
+    </form>
+
+</body>
+</html>
+```
+
+**Points clés :**
+
+- `value="<%= p.getId() %>"` → On envoie l’ID, pas le nom
+- `entreeChoisie` est un `Integer` (pas String)
+- Condition : `p.getId() == entreeChoisie` (comparaison d’entiers)
+- Vérifier `entreeChoisie != null` AVANT de comparer
+
+-----
+
+## plat.jsp (Partie 2 - Radio dynamiques)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.util.*, modele.*" %>
+<%
+    List<Plat> plats = (List<Plat>) request.getAttribute("plats");
+    Integer platChoisi = (Integer) session.getAttribute("platId");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix du plat</title>
+</head>
+<body>
+
+    <h1>Restaurant - Menu</h1>
+    
+    <nav>
+        <a href="MenuControl?action=entree">1. Entrée</a> | 
+        <strong>2. Plat</strong> | 
+        <a href="MenuControl?action=dessert">3. Dessert</a> | 
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre plat :</h2>
+    
+    <form action="MenuControl" method="POST">
+    
+        <input type="hidden" name="action" value="validerPlat">
+        
+        <% for (Plat p : plats) { %>
+        
+            <input type="radio" name="plat" 
+                   value="<%= p.getId() %>" 
+                   id="p<%= p.getId() %>"
+                   <%= (platChoisi != null && p.getId() == platChoisi) ? "checked" : "" %>>
+            <label for="p<%= p.getId() %>">
+                <%= p.getNom() %> - <%= p.getPrix() %>€
+            </label>
+            <br><br>
+            
+        <% } %>
+        
+        <br>
+        <button type="submit">Valider et passer au dessert →</button>
+        
+    </form>
+    
+    <br>
+    <a href="MenuControl?action=entree">← Retour aux entrées</a>
+
+</body>
+</html>
+```
+
+-----
+
+## dessert.jsp (Partie 2 - Radio dynamiques)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.util.*, modele.*" %>
+<%
+    List<Plat> plats = (List<Plat>) request.getAttribute("plats");
+    Integer dessertChoisi = (Integer) session.getAttribute("dessertId");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix du dessert</title>
+</head>
+<body>
+
+    <h1>Restaurant - Menu</h1>
+    
+    <nav>
+        <a href="MenuControl?action=entree">1. Entrée</a> | 
+        <a href="MenuControl?action=plat">2. Plat</a> | 
+        <strong>3. Dessert</strong> | 
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre dessert :</h2>
+    
+    <form action="MenuControl" method="POST">
+    
+        <input type="hidden" name="action" value="validerDessert">
+        
+        <% for (Plat p : plats) { %>
+        
+            <input type="radio" name="dessert" 
+                   value="<%= p.getId() %>" 
+                   id="d<%= p.getId() %>"
+                   <%= (dessertChoisi != null && p.getId() == dessertChoisi) ? "checked" : "" %>>
+            <label for="d<%= p.getId() %>">
+                <%= p.getNom() %> - <%= p.getPrix() %>€
+            </label>
+            <br><br>
+            
+        <% } %>
+        
+        <br>
+        <button type="submit">Valider et voir le récapitulatif →</button>
+        
+    </form>
+    
+    <br>
+    <a href="MenuControl?action=plat">← Retour aux plats</a>
+
+</body>
+</html>
+```
+
+-----
+
+## recap.jsp (Partie 2 - Avec objets Plat)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="modele.*" %>
+<%
+    // ══════════════════════════════════════════════════════════
+    // RÉCUPÉRER LES OBJETS PLAT (depuis le contrôleur)
+    // ══════════════════════════════════════════════════════════
+    Plat entree = (Plat) request.getAttribute("entree");
+    Plat plat = (Plat) request.getAttribute("plat");
+    Plat dessert = (Plat) request.getAttribute("dessert");
+    
+    // ══════════════════════════════════════════════════════════
+    // CALCULER LE TOTAL
+    // ══════════════════════════════════════════════════════════
+    double total = 0;
+    if (entree != null) total += entree.getPrix();
+    if (plat != null) total += plat.getPrix();
+    if (dessert != null) total += dessert.getPrix();
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Récapitulatif</title>
+</head>
+<body>
+
+    <h1>Restaurant - Menu</h1>
+    
+    <nav>
+        <a href="MenuControl?action=entree">1. Entrée</a> | 
+        <a href="MenuControl?action=plat">2. Plat</a> | 
+        <a href="MenuControl?action=dessert">3. Dessert</a> | 
+        <strong>Récapitulatif</strong>
+    </nav>
+    
+    <hr>
+    
+    <h2>Votre commande :</h2>
+    
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Catégorie</th>
+            <th>Votre choix</th>
+            <th>Prix</th>
+            <th>Action</th>
+        </tr>
+        
+        <!-- ENTRÉE -->
+        <tr>
+            <td>Entrée</td>
+            <td>
+                <% if (entree != null) { %>
+                    <%= entree.getNom() %>
+                <% } else { %>
+                    <em>Non choisie</em>
+                <% } %>
+            </td>
+            <td>
+                <%= entree != null ? entree.getPrix() + "€" : "-" %>
+            </td>
+            <td><a href="MenuControl?action=entree">Modifier</a></td>
+        </tr>
+        
+        <!-- PLAT -->
+        <tr>
+            <td>Plat</td>
+            <td>
+                <% if (plat != null) { %>
+                    <%= plat.getNom() %>
+                <% } else { %>
+                    <em>Non choisi</em>
+                <% } %>
+            </td>
+            <td>
+                <%= plat != null ? plat.getPrix() + "€" : "-" %>
+            </td>
+            <td><a href="MenuControl?action=plat">Modifier</a></td>
+        </tr>
+        
+        <!-- DESSERT -->
+        <tr>
+            <td>Dessert</td>
+            <td>
+                <% if (dessert != null) { %>
+                    <%= dessert.getNom() %>
+                <% } else { %>
+                    <em>Non choisi</em>
+                <% } %>
+            </td>
+            <td>
+                <%= dessert != null ? dessert.getPrix() + "€" : "-" %>
+            </td>
+            <td><a href="MenuControl?action=dessert">Modifier</a></td>
+        </tr>
+        
+        <!-- TOTAL -->
+        <tr style="font-weight: bold; background-color: #eee;">
+            <td colspan="2">TOTAL</td>
+            <td><%= total %>€</td>
+            <td></td>
+        </tr>
+    </table>
+    
+    <br>
+    
+    <% if (entree != null && plat != null && dessert != null) { %>
+        <p style="color: green; font-weight: bold;">
+            ✅ Commande complète !
+        </p>
+        <button onclick="alert('Commande envoyée !')">Confirmer</button>
+    <% } else { %>
+        <p style="color: orange;">
+            ⚠️ Commande incomplète
+        </p>
+    <% } %>
+    
+    <br><br>
+    <a href="MenuControl?action=reset">Recommencer</a>
+
+</body>
+</html>
+```
+
+-----
+
+## Compilation Partie 2
+
+```bash
+cd restaurant/WEB-INF/src
+javac -cp "../lib/*" modele/*.java controleur/*.java -d ../classes
+```
+
+-----
+
+# ══════════════════════════════════════════════════════════════
+
+# RÉSUMÉ DES DIFFÉRENCES
+
+# ══════════════════════════════════════════════════════════════
+
+|                     |PARTIE 1 (sans BDD)  |PARTIE 2 (avec DAO)           |
+|---------------------|---------------------|------------------------------|
+|**Modèle**           |Non                  |Plat.java + PlatDAO.java      |
+|**Session stocke**   |Le nom (String)      |L’ID (Integer)                |
+|**Radio value**      |Le nom du plat       |L’ID du plat                  |
+|**Contrôleur charge**|Rien                 |platDAO.findByCategorie()     |
+|**JSP récupère**     |session seulement    |request (liste) + session (ID)|
+|**Pré-sélection**    |`"Nom".equals(choix)`|`p.getId() == choix`          |
+|**Récap affiche**    |Le nom directement   |plat.getNom()                 |
+|**Récap calcule**    |Non (pas de prix)    |total += plat.getPrix()       |
+
+-----
+
+# ══════════════════════════════════════════════════════════════
+
+# TEMPLATES RÉUTILISABLES
+
+# ══════════════════════════════════════════════════════════════
+
+## Radio-button FIXE (Partie 1)
+
+```jsp
+<%
+    String choix = (String) session.getAttribute("nomAttribut");
+%>
+
+<input type="radio" name="nomParam" value="Valeur1" id="r1"
+    <%= "Valeur1".equals(choix) ? "checked" : "" %>>
+<label for="r1">Libellé 1 - Prix€</label><br>
+```
+
+## Radio-button DYNAMIQUE (Partie 2)
+
+```jsp
+<%
+    List<Plat> plats = (List<Plat>) request.getAttribute("plats");
+    Integer choix = (Integer) session.getAttribute("nomAttributId");
+%>
+
+<% for (Plat p : plats) { %>
+    <input type="radio" name="nomParam" value="<%= p.getId() %>" id="r<%= p.getId() %>"
+        <%= (choix != null && p.getId() == choix) ? "checked" : "" %>>
+    <label for="r<%= p.getId() %>"><%= p.getNom() %> - <%= p.getPrix() %>€</label><br>
+<% } %>
+```
+
+-----
+
+# ══════════════════════════════════════════════════════════════
+
+# CHECKLIST CTP
+
+# ══════════════════════════════════════════════════════════════
+
+## Partie 1 (Sessions)
+
+- [ ] `@WebServlet("/NomServlet")` avec le /
+- [ ] `req.setCharacterEncoding("UTF-8")` en premier
+- [ ] `req.getSession(true)` pour créer la session
+- [ ] `session.setAttribute()` pour stocker
+- [ ] `session.getAttribute()` + cast pour récupérer
+- [ ] Radio : même `name` pour le groupe
+- [ ] Radio : `checked` conditionnel avec `"valeur".equals(choix)`
+- [ ] `sendRedirect` après validation (pas forward)
+
+## Partie 2 (DAO)
+
+- [ ] DTO : constructeur vide + getters/setters
+- [ ] DAO : URL, USER, PASS
+- [ ] DAO : `System.out.println(pstmt)` avant execute
+- [ ] DAO : `e.getMessage()` dans le catch
+- [ ] DAO : fermer dans finally (ou try-with-resources)
+- [ ] Contrôleur : charger avec `platDAO.findByCategorie()`
+- [ ] Contrôleur : stocker l’ID (Integer) en session
+- [ ] Contrôleur : charger avec `platDAO.findById()` pour le récap
+- [ ] JSP : import `java.util.*, modele.*`
+- [ ] JSP : boucle `for (Plat p : plats)`
+- [ ] JSP : `value="<%= p.getId() %>"` dans le radio
+- [ ] JSP : condition `(choix != null && p.getId() == choix)`

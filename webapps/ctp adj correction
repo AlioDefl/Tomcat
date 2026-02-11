@@ -1,0 +1,409 @@
+Parfait ! C’est un exercice classique avec sessions. Je te fais le code complet :
+
+Structure du projet
+
+restaurant/
+├── WEB-INF/
+│   ├── src/
+│   │   └── controleur/
+│   │       └── MenuControl.java
+│   ├── vue/
+│   │   ├── entree.jsp
+│   │   ├── plat.jsp
+│   │   ├── dessert.jsp
+│   │   └── recap.jsp
+│   └── classes/
+└── index.html
+
+
+1. MenuControl.java (Contrôleur)
+
+package controleur;
+
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.WebServlet;
+import java.io.*;
+
+@WebServlet("/MenuControl")
+public class MenuControl extends HttpServlet {
+    
+    public void doGet(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        
+        req.setCharacterEncoding("UTF-8");
+        res.setContentType("text/html; charset=UTF-8");
+        
+        // === RÉCUPÉRER LA SESSION ===
+        // true = crée la session si elle n'existe pas
+        HttpSession session = req.getSession(true);
+        
+        // === RÉCUPÉRER L'ACTION ===
+        String action = req.getParameter("action");
+        if (action == null) action = "entree";
+        
+        switch (action) {
+            
+            // ========== AFFICHER PAGE ENTRÉE ==========
+            case "entree":
+                req.getRequestDispatcher("/WEB-INF/vue/entree.jsp").forward(req, res);
+                break;
+            
+            // ========== ENREGISTRER ENTRÉE + ALLER AU PLAT ==========
+            case "validerEntree":
+                String entreeChoisie = req.getParameter("entree");
+                if (entreeChoisie != null) {
+                    session.setAttribute("entree", entreeChoisie);  // Stocker en session
+                }
+                res.sendRedirect("MenuControl?action=plat");
+                break;
+            
+            // ========== AFFICHER PAGE PLAT ==========
+            case "plat":
+                req.getRequestDispatcher("/WEB-INF/vue/plat.jsp").forward(req, res);
+                break;
+            
+            // ========== ENREGISTRER PLAT + ALLER AU DESSERT ==========
+            case "validerPlat":
+                String platChoisi = req.getParameter("plat");
+                if (platChoisi != null) {
+                    session.setAttribute("plat", platChoisi);
+                }
+                res.sendRedirect("MenuControl?action=dessert");
+                break;
+            
+            // ========== AFFICHER PAGE DESSERT ==========
+            case "dessert":
+                req.getRequestDispatcher("/WEB-INF/vue/dessert.jsp").forward(req, res);
+                break;
+            
+            // ========== ENREGISTRER DESSERT + ALLER AU RÉCAP ==========
+            case "validerDessert":
+                String dessertChoisi = req.getParameter("dessert");
+                if (dessertChoisi != null) {
+                    session.setAttribute("dessert", dessertChoisi);
+                }
+                res.sendRedirect("MenuControl?action=recap");
+                break;
+            
+            // ========== AFFICHER RÉCAPITULATIF ==========
+            case "recap":
+                req.getRequestDispatcher("/WEB-INF/vue/recap.jsp").forward(req, res);
+                break;
+            
+            // ========== RECOMMENCER (vider la session) ==========
+            case "reset":
+                session.invalidate();  // Supprime toute la session
+                res.sendRedirect("MenuControl?action=entree");
+                break;
+            
+            default:
+                res.sendRedirect("MenuControl?action=entree");
+        }
+    }
+    
+    public void doPost(HttpServletRequest req, HttpServletResponse res) 
+            throws ServletException, IOException {
+        doGet(req, res);
+    }
+}
+
+
+2. entree.jsp
+
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%
+    // Récupérer le choix précédent (si on revient sur cette page)
+    String entreeChoisie = (String) session.getAttribute("entree");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix de l'entrée</title>
+</head>
+<body>
+    <h1>🍽️ Menu du Restaurant</h1>
+    
+    <!-- Navigation -->
+    <nav>
+        <strong>Entrée</strong> |
+        <a href="MenuControl?action=plat">Plat</a> |
+        <a href="MenuControl?action=dessert">Dessert</a> |
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre entrée :</h2>
+    
+    <form action="MenuControl" method="POST">
+        <input type="hidden" name="action" value="validerEntree">
+        
+        <!-- RADIO BUTTONS -->
+        <input type="radio" name="entree" value="Salade César" id="e1"
+            <%= "Salade César".equals(entreeChoisie) ? "checked" : "" %>>
+        <label for="e1">Salade César - 8€</label><br><br>
+        
+        <input type="radio" name="entree" value="Soupe à l'oignon" id="e2"
+            <%= "Soupe à l'oignon".equals(entreeChoisie) ? "checked" : "" %>>
+        <label for="e2">Soupe à l'oignon - 7€</label><br><br>
+        
+        <input type="radio" name="entree" value="Foie gras" id="e3"
+            <%= "Foie gras".equals(entreeChoisie) ? "checked" : "" %>>
+        <label for="e3">Foie gras - 15€</label><br><br>
+        
+        <input type="radio" name="entree" value="Huîtres" id="e4"
+            <%= "Huîtres".equals(entreeChoisie) ? "checked" : "" %>>
+        <label for="e4">Huîtres (6 pièces) - 12€</label><br><br>
+        
+        <button type="submit">Valider et passer au plat →</button>
+    </form>
+</body>
+</html>
+
+
+3. plat.jsp
+
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%
+    String platChoisi = (String) session.getAttribute("plat");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix du plat</title>
+</head>
+<body>
+    <h1>🍽️ Menu du Restaurant</h1>
+    
+    <!-- Navigation -->
+    <nav>
+        <a href="MenuControl?action=entree">Entrée</a> |
+        <strong>Plat</strong> |
+        <a href="MenuControl?action=dessert">Dessert</a> |
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre plat :</h2>
+    
+    <form action="MenuControl" method="POST">
+        <input type="hidden" name="action" value="validerPlat">
+        
+        <input type="radio" name="plat" value="Steak frites" id="p1"
+            <%= "Steak frites".equals(platChoisi) ? "checked" : "" %>>
+        <label for="p1">Steak frites - 18€</label><br><br>
+        
+        <input type="radio" name="plat" value="Saumon grillé" id="p2"
+            <%= "Saumon grillé".equals(platChoisi) ? "checked" : "" %>>
+        <label for="p2">Saumon grillé - 22€</label><br><br>
+        
+        <input type="radio" name="plat" value="Poulet rôti" id="p3"
+            <%= "Poulet rôti".equals(platChoisi) ? "checked" : "" %>>
+        <label for="p3">Poulet rôti - 16€</label><br><br>
+        
+        <input type="radio" name="plat" value="Risotto aux champignons" id="p4"
+            <%= "Risotto aux champignons".equals(platChoisi) ? "checked" : "" %>>
+        <label for="p4">Risotto aux champignons - 14€</label><br><br>
+        
+        <button type="submit">Valider et passer au dessert →</button>
+    </form>
+    
+    <br>
+    <a href="MenuControl?action=entree">← Retour aux entrées</a>
+</body>
+</html>
+
+
+4. dessert.jsp
+
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%
+    String dessertChoisi = (String) session.getAttribute("dessert");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Choix du dessert</title>
+</head>
+<body>
+    <h1>🍽️ Menu du Restaurant</h1>
+    
+    <!-- Navigation -->
+    <nav>
+        <a href="MenuControl?action=entree">Entrée</a> |
+        <a href="MenuControl?action=plat">Plat</a> |
+        <strong>Dessert</strong> |
+        <a href="MenuControl?action=recap">Récapitulatif</a>
+    </nav>
+    
+    <hr>
+    
+    <h2>Choisissez votre dessert :</h2>
+    
+    <form action="MenuControl" method="POST">
+        <input type="hidden" name="action" value="validerDessert">
+        
+        <input type="radio" name="dessert" value="Tarte aux pommes" id="d1"
+            <%= "Tarte aux pommes".equals(dessertChoisi) ? "checked" : "" %>>
+        <label for="d1">Tarte aux pommes - 7€</label><br><br>
+        
+        <input type="radio" name="dessert" value="Mousse au chocolat" id="d2"
+            <%= "Mousse au chocolat".equals(dessertChoisi) ? "checked" : "" %>>
+        <label for="d2">Mousse au chocolat - 8€</label><br><br>
+        
+        <input type="radio" name="dessert" value="Crème brûlée" id="d3"
+            <%= "Crème brûlée".equals(dessertChoisi) ? "checked" : "" %>>
+        <label for="d3">Crème brûlée - 9€</label><br><br>
+        
+        <input type="radio" name="dessert" value="Glace artisanale" id="d4"
+            <%= "Glace artisanale".equals(dessertChoisi) ? "checked" : "" %>>
+        <label for="d4">Glace artisanale (3 boules) - 6€</label><br><br>
+        
+        <button type="submit">Valider et voir le récapitulatif →</button>
+    </form>
+    
+    <br>
+    <a href="MenuControl?action=plat">← Retour aux plats</a>
+</body>
+</html>
+
+
+5. recap.jsp
+
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%
+    String entree = (String) session.getAttribute("entree");
+    String plat = (String) session.getAttribute("plat");
+    String dessert = (String) session.getAttribute("dessert");
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Récapitulatif de la commande</title>
+</head>
+<body>
+    <h1>🍽️ Menu du Restaurant</h1>
+    
+    <!-- Navigation -->
+    <nav>
+        <a href="MenuControl?action=entree">Entrée</a> |
+        <a href="MenuControl?action=plat">Plat</a> |
+        <a href="MenuControl?action=dessert">Dessert</a> |
+        <strong>Récapitulatif</strong>
+    </nav>
+    
+    <hr>
+    
+    <h2>📋 Votre commande :</h2>
+    
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Entrée</th>
+            <td>
+                <% if (entree != null) { %>
+                    <%= entree %>
+                <% } else { %>
+                    <em>Non choisie</em>
+                <% } %>
+            </td>
+            <td><a href="MenuControl?action=entree">Modifier</a></td>
+        </tr>
+        <tr>
+            <th>Plat</th>
+            <td>
+                <% if (plat != null) { %>
+                    <%= plat %>
+                <% } else { %>
+                    <em>Non choisi</em>
+                <% } %>
+            </td>
+            <td><a href="MenuControl?action=plat">Modifier</a></td>
+        </tr>
+        <tr>
+            <th>Dessert</th>
+            <td>
+                <% if (dessert != null) { %>
+                    <%= dessert %>
+                <% } else { %>
+                    <em>Non choisi</em>
+                <% } %>
+            </td>
+            <td><a href="MenuControl?action=dessert">Modifier</a></td>
+        </tr>
+    </table>
+    
+    <br>
+    
+    <% if (entree != null && plat != null && dessert != null) { %>
+        <p style="color: green; font-weight: bold;">✅ Commande complète !</p>
+        <button onclick="alert('Commande envoyée en cuisine !')">Confirmer la commande</button>
+    <% } else { %>
+        <p style="color: orange;">⚠️ Commande incomplète</p>
+    <% } %>
+    
+    <br><br>
+    <a href="MenuControl?action=reset">🗑️ Recommencer (vider la commande)</a>
+</body>
+</html>
+
+
+Résumé : Comment ça marche
+La SESSION
+
+// Récupérer/créer la session
+HttpSession session = req.getSession(true);
+
+// Stocker une valeur
+session.setAttribute("entree", "Salade César");
+
+// Récupérer une valeur
+String entree = (String) session.getAttribute("entree");
+
+// Supprimer une valeur
+session.removeAttribute("entree");
+
+// Vider toute la session
+session.invalidate();
+
+
+Schéma du flux
+
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│ ENTRÉE  │───>│  PLAT   │───>│ DESSERT │───>│ RÉCAP   │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+     │              │              │              │
+     │   SESSION    │   SESSION    │   SESSION    │
+     └──────────────┴──────────────┴──────────────┘
+                    │
+            entree = "Salade"
+            plat = "Steak"
+            dessert = "Tarte"
+
+
+Radio button avec pré-sélection
+
+<%
+    String choix = (String) session.getAttribute("entree");
+%>
+
+<input type="radio" name="entree" value="Salade César"
+    <%= "Salade César".equals(choix) ? "checked" : "" %>>
+
+
+Pourquoi "Salade César".equals(choix) et pas choix.equals("Salade César") ?
+→ Si choix est null, choix.equals(...) plante (NullPointerException) !
+→ "Salade César".equals(null) retourne juste false, pas d’erreur.
+
+Compilation
+
+cd restaurant/WEB-INF/src
+javac -cp "../../../lib/*" controleur/*.java -d ../classes
+
+
+C’est bon ? Tu veux que je t’ajoute une version avec les plats stockés en base de données ?​​​​​​​​​​​​​​​​
